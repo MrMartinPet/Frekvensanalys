@@ -7,51 +7,239 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net" />
 <style>
   :root{
-    --bg:#f6f7fb; --card:#fff; --border:#e6e8ef; --text:#111827; --muted:#6b7280; --accent:#3a6ff8;
+    --bg:#f3f4fb;
+    --card:#ffffff;
+    --border:#e1e4f2;
+    --text:#111827;
+    --muted:#6b7280;
+    --accent:#2563eb;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
   html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
   .wrap{max-width:560px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column}
-  .topbar{position:sticky;top:0;z-index:10;background:linear-gradient(#fff,rgba(255,255,255,.9));border-bottom:1px solid var(--border);backdrop-filter:saturate(1.2) blur(6px);}
-  .topbar .inner{padding:12px 14px}
-  h1{margin:0;font-size:18px}
-  .chip{display:inline-block;margin-top:6px;padding:6px 10px;border-radius:999px;background:#eef2ff;font-weight:600;font-size:12px}
+  .topbar{position:sticky;top:0;z-index:20;background:linear-gradient(#ffffff,rgba(255,255,255,.94));border-bottom:1px solid var(--border);backdrop-filter:saturate(1.2) blur(8px);}
+  .topbar .inner{padding:10px 14px}
+  h1{margin:0;font-size:19px;font-weight:800}
+  .chip{display:inline-block;margin-top:4px;padding:5px 10px;border-radius:999px;background:#e0edff;font-weight:600;font-size:12px;color:#1f2933}
 
-  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 24px rgba(0,0,0,.04);padding:12px;margin:12px 14px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 24px rgba(15,23,42,.04);padding:12px;margin:12px 14px}
   .row{display:flex;gap:10px}
   .col{flex:1}
-  input,select{width:100%;padding:14px 12px;border:1px solid var(--border);border-radius:12px;background:#fff;font-size:16px}
-  .btn{display:inline-flex;align-items:center;justify-content:center;width:100%;padding:14px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-weight:700;font-size:16px}
+  input,select{width:100%;padding:12px 11px;border:1px solid var(--border);border-radius:12px;background:#fff;font-size:15px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;width:100%;padding:12px 10px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-weight:700;font-size:15px;cursor:pointer}
   .btn.secondary{background:#111827}
   .btn.ghost{background:#e5e7eb;color:#111827}
-  .btn.small{padding:10px 12px;font-size:14px}
+  .btn.small{padding:9px 10px;font-size:13px}
   .sectionTitle{font-weight:800;font-size:15px;margin:8px 14px}
 
-  details{border:1px solid var(--border);border-radius:16px;overflow:hidden;margin:10px 14px;background:#fff}
-  summary{list-style:none;padding:10px 14px;font-weight:800;font-size:14px}
-  summary::-webkit-details-marker{display:none}
-  .subTitle{padding:6px 14px;font-weight:700;color:#111;font-size:13px}
-  .subTitle.sub--small{padding-top:4px;padding-bottom:4px;font-weight:600;color:var(--muted);font-size:12px}
-  .rowLine{display:flex;gap:8px;align-items:center;padding:10px 14px;border-top:1px solid var(--border)}
+  /* Setup-editor */
+  details{border:1px solid var(--border);border-radius:16px;overflow:hidden;margin:10px 14px;background:#ffffff}
+  details > summary{
+    list-style:none;
+    padding:14px 16px;
+    font-weight:900;
+    font-size:18px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    background:#eef2ff;
+    border-bottom:1px solid #d0d7f5;
+  }
+  details > summary::-webkit-details-marker{display:none}
+  .subTitle{
+    padding:10px 18px 6px 18px;
+    font-weight:800;
+    font-size:15px;
+    color:#1f2937;
+    background:#f8f9ff;
+    border-left:4px solid #c3c9ef;
+  }
+  .subTitle.sub--small{
+    padding-top:10px;
+    padding-bottom:6px;
+  }
+  .rowLine{display:flex;gap:8px;align-items:center;padding:9px 14px;border-top:1px solid var(--border)}
   .rowLine input{flex:1}
-  .addRow{padding:12px 14px;border-top:1px dashed var(--border);display:flex;gap:8px}
+  .addRow{padding:11px 14px;border-top:1px dashed var(--border);display:flex;gap:8px}
 
   /* Analysis view */
-  .analysisHeader{position:sticky;top:56px;z-index:9;min-height:20vh;background:var(--bg);display:flex;flex-direction:column;justify-content:center}
-  .nowBar{display:grid;grid-template-columns:1fr 120px;gap:10px}
-  .pill{background:#6b7280;color:#fff;border-radius:16px;padding:18px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:18px;font-weight:800;min-height:76px}
-  .timer{background:#374151;color:#fff;border-radius:16px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px}
-  .toolbar{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-  .list{display:flex;flex-direction:column;gap:8px;margin-bottom:80px}
-  .rowBtn{display:grid;grid-template-columns:1fr 90px;gap:8px;align-items:center;padding:4px 14px}
-  .btnAct{padding:10px;border:none;border-radius:10px;background:#f5e1bf;font-weight:700;font-size:14px;text-align:left;line-height:1.2}
-  .btnAct.act--small{font-size:13px;padding:8px 10px}
-  .btnAct.activeAct{background:#fed7aa;box-shadow:0 0 0 2px rgba(248,113,113,.6);}
-  .badge{padding:8px;border-radius:10px;background:#f1f5f9;text-align:center;font-weight:800;font-size:13px}
-  .badge.activeAct{background:#111827;color:#fff}
-  .fab{position:fixed;inset:auto 16px 16px auto;width:56px;height:56px;border-radius:50%;border:none;background:var(--accent);color:#fff;font-size:28px;display:flex;align-items:center;justify-content:center;box-shadow:0 14px 28px rgba(58,111,248,.35)}
+  .analysisHeader{
+    position:sticky;
+    top:52px;
+    z-index:15;
+    background:var(--bg);
+    padding-bottom:4px;
+  }
+  .analysisHeaderInner{padding:8px 0 2px 0;}
+  .nowBar{
+    display:grid;
+    grid-template-columns:1.6fr 1.2fr;
+    gap:10px;
+    align-items:stretch;
+  }
+  .pill{
+    background:#0f172a;
+    color:#f9fafb;
+    border-radius:16px;
+    padding:16px 14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    font-size:17px;
+    font-weight:800;
+    min-height:76px;
+  }
+  .timerBlock{display:flex;flex-direction:column;gap:8px}
+  .timer{
+    border-radius:14px;
+    padding:10px 10px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    font-weight:800;
+  }
+  .timer.timerCurrent{
+    background:linear-gradient(135deg,#22c55e,#16a34a);
+    color:#ecfdf5;
+    box-shadow:0 0 0 1px rgba(21,128,61,.4);
+  }
+  .timer.timerSession{
+    background:linear-gradient(135deg,#38bdf8,#2563eb);
+    color:#eff6ff;
+    box-shadow:0 0 0 1px rgba(37,99,235,.4);
+  }
+  .timerLabel{font-size:11px;opacity:.9;letter-spacing:.06em;text-transform:uppercase}
+  .timerValue{font-size:18px;margin-top:3px}
+
+  .toolbar{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:10px;
+  }
+
+  /* Kategorirad: grid, inga sidscrollar, lika breda knappar */
+  .catTabs{
+    margin-top:10px;
+    padding:8px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    background:#ffffff;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(90px,1fr));
+    gap:8px;
+  }
+  .catTabBtn{
+    width:100%;
+    padding:7px 8px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:#f9fafb;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    cursor:pointer;
+  }
+  .catTabBtn.active{
+    background:#111827;
+    color:#ffffff;
+    border-color:#111827;
+  }
+
+  .list{display:flex;flex-direction:column;gap:8px;margin:6px 0 80px 0}
+
+  /* Underkategori-block – tydlig ram runt kategori */
+  .subBlock{
+    margin:10px 14px 12px 14px;
+    padding:10px 12px 12px 12px;
+    border-radius:14px;
+    border:1px solid var(--border);
+    background:#ffffff;
+  }
+  .subBlockTitle{
+    margin:0 0 6px 2px;
+    font-weight:800;
+    font-size:18px;   /* större underrubrik */
+    color:#111827;
+  }
+
+  /* Aktivitetsgrid – 1–2 kolumner */
+  .actGrid{
+    margin-top:4px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+    gap:8px;
+  }
+  .actCard{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+
+  /* Aktivitetsknapp – mindre än underrubrik */
+  .btnAct{
+    padding:9px 11px;
+    border-radius:10px;
+    border:1px solid #e2e4ea;
+    background:#ffffff;
+    font-weight:600;
+    font-size:13px;
+    text-align:left;
+    line-height:1.3;
+    cursor:pointer;
+    flex:1;
+  }
+  .btnAct.act--small{font-size:13px;padding:9px 11px}
+
+  .badge{
+    padding:7px 6px;
+    border-radius:10px;
+    background:#eef2ff;
+    text-align:center;
+    font-weight:800;
+    font-size:12px;
+    min-width:70px;
+  }
+
+  .btnAct.activeAct{
+    background:#ffedd5 !important;
+    color:#7c2d12 !important;
+    border:2px solid #fb923c !important;
+  }
+  .badge.activeAct{
+    background:#7c2d12 !important;
+    color:#ffffff !important;
+  }
+  #quickGangBtn.activeQuick{
+    background:#ffedd5 !important;
+    color:#7c2d12 !important;
+    border:2px solid #fb923c !important;
+  }
+
   canvas{max-width:100%}
+
+  .summaryToggleRow{display:flex;gap:8px;margin-bottom:8px}
+  .chipToggle{
+    flex:1;
+    padding:7px 8px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:#f9fafb;
+    font-size:13px;
+    text-align:center;
+    cursor:pointer;
+  }
+  .chipToggle.active{
+    background:#2563eb;
+    color:#ffffff;
+    border-color:#2563eb;
+    font-weight:700;
+  }
 </style>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -84,20 +272,33 @@
     </div>
   </section>
 
-  <!-- ANALYSIS -->
+  <!-- ANALYS -->
   <section id="analysis" hidden>
-    <div class="card analysisHeader">
-      <div class="nowBar">
-        <div class="pill" id="currentAct">–</div>
-        <div class="timer" id="liveTimer">00:00:00</div>
-      </div>
-      <div class="toolbar">
-        <button id="pauseBtn" class="btn ghost" onclick="pauseActivity()">Pausa aktivitet</button>
-        <button class="btn secondary" onclick="finishSession()">Avsluta</button>
+    <div class="analysisHeader">
+      <div class="card analysisHeaderInner">
+        <div class="nowBar">
+          <div class="pill" id="currentAct">–</div>
+          <div class="timerBlock">
+            <div class="timer timerCurrent">
+              <span class="timerLabel">Aktivitet</span>
+              <span class="timerValue" id="liveTimer">00:00:00</span>
+            </div>
+            <div class="timer timerSession">
+              <span class="timerLabel">Total analys</span>
+              <span class="timerValue" id="sessionTimer">00:00:00</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <button id="quickGangBtn" class="btn ghost" onclick="quickGang()">Gång</button>
+          <button class="btn secondary" onclick="finishSession()">Avsluta</button>
+        </div>
+
+        <!-- Kategoritabs UNDER Gång/Avsluta -->
+        <div id="catTabs" class="catTabs"></div>
       </div>
     </div>
-
-    <!-- Inga ad-hoc-kategorier här längre; endast i Övrigt längst ner -->
 
     <div id="actList" class="list"></div>
   </section>
@@ -106,75 +307,153 @@
   <section id="summary" hidden>
     <div class="card">
       <div class="row">
-        <div class="col"><button class="btn ghost" onclick="downloadCSV()">Exportera CSV</button></div>
+        <div class="col"><button class="btn ghost" onclick="downloadExcel()">Exportera till Excel</button></div>
         <div class="col"><button class="btn" onclick="window.location.reload()">Ny analys</button></div>
       </div>
     </div>
-    <div class="card"><canvas id="pie"></canvas></div>
+    <div class="card" id="summaryTotals"></div>
+    <div class="card">
+      <div class="summaryToggleRow">
+        <button id="toggleCat" class="chipToggle active" onclick="setChartMode('category')">Visa per huvudkategori</button>
+        <button id="toggleSub" class="chipToggle" onclick="setChartMode('subcategory')">Visa per underkategori</button>
+      </div>
+      <canvas id="pie"></canvas>
+    </div>
     <div class="card"><div id="totals" class="list"></div></div>
   </section>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// DATA – kategori -> underkategori -> aktiviteter
+// ===== DATA =====
 const model = {
   header:{leader:"",flow:"",date:""},
   tree:[
-    { // 1. Logistik
-      name:"Logistik", color:"#ffe8d9", subs:[
-        {name:"Från inruta", acts:[
-          "Material till fräslokal","Material till torg","Material till Formning","Verktyg till Limhjul",
-          "Verktyg till Fräslokal","Emballage till Fräslokal","Binge till fräslokal","Övrigt in till flöde"]},
-        {name:"Från Materialtorg", acts:["Material till LH","Material till Fräs"]},
-        {name:"Från Formning", acts:[
-          "Material till Frästorg","Material till Limtorg LH","Material till Limtorg Byrå","Material till utruta","Verktyg till utruta"]},
-        {name:"Från Fräsning", acts:[
-          "Verktyg till Hans","Verktyg till ställage i fräs","Verktyg till utruta","Vinkel till torg",
-          "Material till monteringstorg","Tompall till utruta","Verktyg till bäddfräs (ställage)"]},
-        {name:"Från Limning", acts:[
-          "Verktyg till Laura","Verktyg till vagnsplats golv","Verktyg till utruta","Tompall till utruta",
-          "Överblivet material till utruta","Vinkel till torg"]},
-        {name:"Från Verktygshiss/Vagnsplats", acts:[
-          "Verktyg från Laura till LH","Verktyg från Hans till fräslokal","Verktyg från golvplats till LH"]},
-        {name:"Övrigt logistik", acts:[
-          "Packlåda till fräs","Tompall/vagn till fräs","Tomvagn till fräs","Ingående komponenter"]}
-      ]
-    },
-    { // 2. Produktionsplanering
-      name:"Produktionsplanering", color:"#e8f0ff", subs:[
-        {name:"I Monitor", acts:[
-          "Planering formning","Planering borrning","Planering limning","Planering fräsning"]},
-        {name:"Powerapp", acts:["Beställning i app"]},
-        {name:"Excel", acts:["Planering"]},
-        {name:"Överlämning", acts:["Förberedelse av Överlämning"]}
-      ]
-    },
-    { // 3. Problem
-      name:"Problem", color:"#fff9db", subs:[
-        {name:"Problemlösning", acts:[
-          "Kvalitetsproblem","Verktygsproblem","Materialproblem","Emballageproblem","Maskinproblem"]}
-      ]
-    },
-    { // 4. Möten
-      name:"Möten", color:"#eaf7e8", subs:[
-        {name:"Planerat möte", acts:[
-          "Skiftstartsmöte","Morgomöte","Övrigt möte","Övrig Personalplanering",
-          "Personalplaneringsmöte","Skiftöverlämning","QROC","QRSC"]}
-      ]
-    },
-    { // 5. Övrigt
-      name:"Övrigt", color:"#f5e0ff", isOther:true, subs:[
-        {name:"Övrigt", acts:["Gång","Rast","Ingenting"]}
-      ]
-    }
+    {name:"Logistik", color:"#fff3e8", subs:[
+      {name:"Från inruta", acts:[
+        "Material till fräslokal",
+        "Material till torg",
+        "Material till Formning",
+        "Verktyg till Limhjul",
+        "Verktyg till Fräslokal",
+        "Emballage till Fräslokal",
+        "Binge till fräslokal",
+        "Övrigt in till flöde"
+      ]},
+
+      {name:"Från Materialtorg", acts:[
+        "Material till Limhjul",
+        "Material till Fräs"
+      ]},
+
+      {name:"Från Formning", acts:[
+        "Material till Frästorg",
+        "Material till Limtorg LH",
+        "Material till Limtorg Byrå",
+        "Material till utruta",
+        "Formverktyg till utruta"
+      ]},
+
+      {name:"Från Fräsning", acts:[
+        "Verktyg till Hans",
+        "Verktyg till ställage i fräs",
+        "Fräsverktyg till utruta",
+        "Tomvinkel till torg",
+        "Material till monteringstorg",
+        "Verktyg till bäddfräs (ställage)"
+      ]},
+
+      {name:"Från Limning", acts:[
+        "Verktyg till Laura",
+        "Verktyg till vagnsplats golv",
+        "Verktyg till utruta",
+        "Tompall till utruta",
+        "Överblivet material till utruta",
+        "Vinkel till torg"
+      ]},
+
+      {name:"Från Hiss/Golv", acts:[
+        "Laura till LH",
+        "Hans till fräslokal",
+        "Golvplats till LH"
+      ]},
+
+      {name:"Övrigt logistik", acts:[
+        "Packlåda till fräs",
+        "Tompall/vagn till fräs",
+        "Tomvagn till fräs",
+        "Ingående komponenter"
+      ]}
+    ]},
+
+    {name:"Planering", color:"#e8f0ff", subs:[
+      {name:"Monitor", acts:[
+        "Planering Formning",
+        "Planering Borrning",
+        "Planering Limning",
+        "Planering Fräsning",
+        "Planering Montering",
+        "Planering Kapning"
+      ]},
+
+      {name:"App", acts:[
+        "Beställning I app"
+      ]},
+
+      {name:"Excel", acts:[
+        "Planering Excel"
+      ]}
+    ]},
+
+    {name:"Problem", color:"#fff9db", subs:[
+      {name:"Problemlösning", acts:[
+        "Kvalitetsproblem",
+        "Verktygsproblem",
+        "Materialproblem",
+        "Emballageproblem",
+        "Maskinproblem"
+      ]}
+    ]},
+
+    {name:"Möten", color:"#eaf7e8", subs:[
+      {name:"Planerat möte", acts:[
+        "Skiftstartsmöte",
+        "Morgonmöte (8.00)",
+        "Personalplaneringsmöte",
+        "Skiftöverlämningsmöte",
+        "Övrigt möte",
+        "QRQC",
+        "QRSC"
+      ]}
+    ]},
+
+    {name:"Övrigt", color:"#f5e0ff", isOther:true, subs:[
+      {name:"Övrigt", acts:[
+        "Gång",
+        "Rast",
+        "Ingenting",
+        "Personalplanering löpande",
+        "Förberedelse av Överlämning",
+        "Tejpa rutor",
+        "Blanda lim",
+        "Hjälpa till med ställ",
+        "Rastkörning"
+      ]}
+    ]}
   ],
-  totals:{}, // aktivitet -> sekunder
-  sessionStart:0, sessionRAF:0,
-  active:null, activeStart:0, history:[], paused:false
+  totals:{},
+  actMeta:{},
+  sessionStart:0,
+  sessionRAF:0,
+  active:null,
+  activeStart:0,
+  history:[],
+  chartMode:"category",
+  chartInstance:null,
+  selectedCatIndex:0
 };
 
-// =========== SETUP EDITOR ==========
+// ===== SETUP EDITOR =====
 function renderEditor(){
   const host = document.getElementById('editor');
   host.innerHTML='';
@@ -185,7 +464,11 @@ function renderEditor(){
     const s=document.createElement('summary'); s.textContent=cat.name; d.appendChild(s);
 
     cat.subs.forEach((sub,si)=>{
-      const t=document.createElement('div'); t.className='subTitle'; t.textContent=sub.name; d.appendChild(t);
+      const t=document.createElement('div');
+      t.className='subTitle sub--small';
+      t.textContent=sub.name;
+      d.appendChild(t);
+
       sub.acts.forEach((act,ai)=>{
         const r=document.createElement('div'); r.className='rowLine';
         r.innerHTML=`<input value="${act}" onchange="renameAct(${ci},${si},${ai},this.value)">`+
@@ -220,13 +503,25 @@ function pushAct(ci,si,name){
   renderEditor();
 }
 
-// =========== ANALYS ==========
+// ===== ANALYS =====
+function buildActMeta(){
+  model.actMeta = {};
+  model.tree.forEach(c=>{
+    c.subs.forEach(s=>{
+      s.acts.forEach(a=>{
+        model.actMeta[a] = {catName:c.name, subName:s.name};
+      });
+    });
+  });
+}
+
 function startSession(){
   model.header.leader=document.getElementById('leader').value.trim();
   model.header.flow=document.getElementById('flow').value.trim();
   model.header.date=document.getElementById('date').value;
 
-  // förbered totals
+  buildActMeta();
+
   model.totals={};
   model.tree.forEach(c=>c.subs.forEach(s=>s.acts.forEach(a=>model.totals[a]=0)));
 
@@ -234,8 +529,11 @@ function startSession(){
   model.history=[];
   model.active=null;
   model.activeStart=0;
+  model.selectedCatIndex=0;
 
+  renderCategoryTabs();
   renderActList();
+
   document.getElementById('setup').hidden=true;
   document.getElementById('analysis').hidden=false;
 
@@ -246,54 +544,73 @@ function startSession(){
   tick();
 }
 
-// Grupperad lista under analys
+function renderCategoryTabs(){
+  const host=document.getElementById('catTabs');
+  host.innerHTML='';
+  model.tree.forEach((cat,idx)=>{
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='catTabBtn'+(idx===model.selectedCatIndex?' active':'');
+    btn.textContent=cat.name.toUpperCase();
+    btn.onclick=()=>selectCategory(idx);
+    host.appendChild(btn);
+  });
+}
+
+function selectCategory(idx){
+  model.selectedCatIndex=idx;
+  renderCategoryTabs();
+  renderActList();
+  highlightActiveRow();
+}
+
 function renderActList(){
   const host=document.getElementById('actList');
   host.innerHTML='';
 
-  model.tree.forEach(cat=>{
-    const det=document.createElement('details');
-    det.open=true;
-    det.style.background=cat.color||'#fff';
+  const cat = model.tree[model.selectedCatIndex] || model.tree[0];
 
-    const sum=document.createElement('summary');
-    sum.textContent=cat.name;
-    det.appendChild(sum);
+  cat.subs.forEach((sub,subIndex)=>{
+    if(!sub.acts || !sub.acts.length) return;
 
-    cat.subs.forEach((sub,subIndex)=>{
-      if(!sub.acts || !sub.acts.length) return;
+    const subBlock=document.createElement('div');
+    subBlock.className='subBlock';
 
-      const subTitle=document.createElement('div');
-      subTitle.className='subTitle sub--small';
-      subTitle.textContent=sub.name;
-      det.appendChild(subTitle);
+    const title=document.createElement('div');
+    title.className='subBlockTitle';
+    title.textContent=sub.name;
+    subBlock.appendChild(title);
 
-      sub.acts.forEach(act=>{
-        const row=document.createElement('div');
-        row.className='rowBtn';
-        const safeAct = act.replaceAll('"',"&quot;");
-        row.innerHTML =
-          `<button class="btnAct act--small" id="btn_${hash(act)}" data-act="${safeAct}" onclick='selectActivity("${safeAct}")'>${act}</button>`+
-          `<div class="badge" id="sum_${hash(act)}">00:00:00</div>`;
-        det.appendChild(row);
-      });
+    const grid=document.createElement('div');
+    grid.className='actGrid';
 
-      // Lägga till nya aktiviteter endast under Övrigt (sista kategorin)
-      if(cat.isOther && subIndex === cat.subs.length-1){
-        const addRow=document.createElement('div');
-        addRow.className='addRow';
-        addRow.style.borderTopStyle='solid';
-        addRow.innerHTML =
-          `<input id="otherNewAct" placeholder="Ny aktivitet i Övrigt">`+
-          `<button class="btn small" style="width:auto" onclick="addOtherActivity()">+ Lägg till</button>`;
-        det.appendChild(addRow);
-      }
+    sub.acts.forEach(act=>{
+      const card=document.createElement('div');
+      card.className='actCard';
+
+      const safeAct = act.replaceAll('"',"&quot;");
+      card.innerHTML =
+        `<button class="btnAct act--small" id="btn_${hash(act)}" data-act="${safeAct}" onclick='selectActivity("${safeAct}")'>${act}</button>`+
+        `<div class="badge" id="sum_${hash(act)}">00:00:00</div>`;
+
+      grid.appendChild(card);
     });
 
-    host.appendChild(det);
+    if(cat.isOther && subIndex === cat.subs.length-1){
+      const addRow=document.createElement('div');
+      addRow.className='addRow';
+      addRow.style.borderTopStyle='solid';
+      addRow.innerHTML =
+        `<input id="otherNewAct" placeholder="Ny aktivitet i Övrigt">`+
+        `<button class="btn small" style="width:auto" onclick="addOtherActivity()">+ Lägg till</button>`;
+      subBlock.appendChild(addRow);
+    }
+
+    subBlock.appendChild(grid);
+    host.appendChild(subBlock);
   });
 
-  highlightActiveRow(); // om man kör render efter att aktivitet redan valts
+  highlightActiveRow();
 }
 
 function addOtherActivity(){
@@ -308,43 +625,29 @@ function addOtherActivity(){
   if(!otherCat.subs.length) otherCat.subs.push({name:"Övrigt",acts:[]});
   otherCat.subs[0].acts.push(name);
 
-  // säkerställ totals
   model.totals[name]=0;
+  model.actMeta[name] = {catName:otherCat.name, subName:otherCat.subs[0].name};
 
   input.value='';
   renderActList();
 }
 
+function quickGang(){ selectActivity("Gång"); }
+
 function selectActivity(name){
-  const now=performance.now();
+  const now = performance.now();
 
   if(model.active){
-    const d=(now-model.activeStart)/1000;
-    if(d>0){
-      model.totals[model.active]=(model.totals[model.active]||0)+d;
-      model.history.push({act:model.active,start:model.activeStart,end:now});
+    const durMs = now - model.activeStart;
+    if(durMs > 0){
+      model.totals[model.active] = (model.totals[model.active] || 0) + durMs;
+      model.history.push({act:model.active, start:model.activeStart, end:now});
     }
   }
 
-  model.active=name;
-  model.activeStart=now;
-  model.paused=false;
-  document.getElementById('currentAct').textContent=name;
-  setLive(0);
-  highlightActiveRow();
-}
-
-function pauseActivity(){
-  if(!model.active) return;
-  const now=performance.now();
-  const d=(now-model.activeStart)/1000;
-  if(d>0){
-    model.totals[model.active]+=(d>0?d:0);
-    model.history.push({act:model.active,start:model.activeStart,end:now});
-  }
-  model.active=null;
-  model.paused=true;
-  document.getElementById('currentAct').textContent='Pausad';
+  model.active = name;
+  model.activeStart = now;
+  document.getElementById('currentAct').textContent = name;
   setLive(0);
   highlightActiveRow();
 }
@@ -352,41 +655,42 @@ function pauseActivity(){
 function tick(){
   const now = performance.now();
 
+  const totalMs = now - model.sessionStart;
+  setSession(totalMs);
+
   if(model.active){
-    const d=(now-model.activeStart)/1000;
-    setLive(d);
+    const curMs = now - model.activeStart;
+    setLive(curMs);
   }
 
-  // preview: totals + ev. pågående aktivitet
-  const preview={...model.totals};
+  const preview = {...model.totals};
   if(model.active){
-    preview[model.active]=(preview[model.active]||0)+((now-model.activeStart)/1000);
+    preview[model.active] = (preview[model.active] || 0) + (now - model.activeStart);
   }
 
-  for(const [k,v] of Object.entries(preview)){
-    const el=document.getElementById('sum_'+hash(k));
+  for(const [act,ms] of Object.entries(preview)){
+    const el=document.getElementById('sum_'+hash(act));
     if(el){
-      // aktiv aktivitets badge sätts längre ner för att matcha huvudtimern
-      if(model.active===k){
-        el.textContent=document.getElementById('liveTimer').textContent;
-      } else {
-        el.textContent=fmt(v);
-      }
+      el.textContent = fmt(ms);
     }
   }
 
-  model.sessionRAF=requestAnimationFrame(tick);
+  model.sessionRAF = requestAnimationFrame(tick);
 }
 
 function finishSession(){
+  if(!confirm("Vill du avsluta analysen? Detta stoppar timern och låser resultatet.")){
+    return;
+  }
+
+  const now = performance.now();
   if(model.active){
-    const now=performance.now();
-    const d=(now-model.activeStart)/1000;
-    if(d>0){
-      model.totals[model.active]+=d;
-      model.history.push({act:model.active,start:model.activeStart,end:now});
+    const durMs = now - model.activeStart;
+    if(durMs>0){
+      model.totals[model.active] = (model.totals[model.active] || 0) + durMs;
+      model.history.push({act:model.active, start:model.activeStart, end:now});
     }
-    model.active=null;
+    model.active = null;
   }
   cancelAnimationFrame(model.sessionRAF);
   document.getElementById('analysis').hidden=true;
@@ -394,49 +698,126 @@ function finishSession(){
   renderSummary();
 }
 
-// =========== SUMMARY & EXPORT ==========
-function renderSummary(){
-  const labels=Object.keys(model.totals);
-  const data=labels.map(k=>Math.round(model.totals[k]));
-  new Chart(document.getElementById('pie'),{
+// ===== SUMMARY & EXPORT =====
+function aggregateByCategory(){
+  const res={};
+  for(const [act,ms] of Object.entries(model.totals)){
+    const meta = model.actMeta[act];
+    if(!meta) continue;
+    const key = meta.catName;
+    res[key] = (res[key] || 0) + ms;
+  }
+  return res;
+}
+function aggregateBySubcategory(){
+  const res={};
+  for(const [act,ms] of Object.entries(model.totals)){
+    const meta = model.actMeta[act];
+    if(!meta) continue;
+    const key = `${meta.catName} – ${meta.subName}`;
+    res[key] = (res[key] || 0) + ms;
+  }
+  return res;
+}
+
+function setChartMode(mode){
+  model.chartMode = mode;
+  document.getElementById('toggleCat').classList.toggle('active',mode==="category");
+  document.getElementById('toggleSub').classList.toggle('active',mode==="subcategory");
+  renderChart();
+}
+
+function renderChart(){
+  const dataObj = model.chartMode === "category" ? aggregateByCategory() : aggregateBySubcategory();
+  const labels = Object.keys(dataObj);
+  const data = labels.map(l=>Math.round(dataObj[l]/1000));
+
+  const ctx = document.getElementById('pie').getContext('2d');
+  if(model.chartInstance){ model.chartInstance.destroy(); }
+  model.chartInstance = new Chart(ctx,{
     type:'pie',
     data:{labels,datasets:[{data}]},
     options:{plugins:{legend:{position:'bottom'}}}
   });
+}
+
+function renderSummary(){
+  renderChart();
+
+  const summaryTotals = document.getElementById("summaryTotals");
+
+  let totalAnalysisMs = 0;
+  if(model.history.length>0){
+    totalAnalysisMs = model.history[model.history.length-1].end - model.sessionStart;
+  }
+
+  const totalActivitiesMs =
+    Object.values(model.totals).reduce((a,b)=>a+b,0);
+
+  summaryTotals.innerHTML = `
+    <div style="font-weight:700;margin-bottom:6px;">Totaler</div>
+    <div style="margin-bottom:2px;">Total analys: <b>${fmt(totalAnalysisMs)}</b></div>
+    <div>Total aktiviteter: <b>${fmt(totalActivitiesMs)}</b></div>
+  `;
 
   const list=document.getElementById('totals');
+  const labels=Object.keys(model.totals);
   list.innerHTML=labels
     .filter(l=>model.totals[l]>0)
-    .map(l=>`<div class='rowBtn'><div class='btnAct' style='background:#eef2ff'>${l}</div><div class='badge'>${fmt(model.totals[l])}</div></div>`)
+    .map(l=>`<div class='row' style="align-items:center;margin-bottom:4px;"><div style="flex:1;font-size:14px;font-weight:600;">${l}</div><div class='badge'>${fmt(model.totals[l])}</div></div>`)
     .join('');
 }
 
-function downloadCSV(){
-  const base=Date.now()-(performance.now()-model.sessionStart);
-  const rows=[
-    ["Lagledare",model.header.leader],
-    ["Flöde",model.header.flow],
-    ["Datum",model.header.date||new Date(base).toLocaleDateString('sv-SE')],
-    ["\n"],
-    ["Aktivitet","Start","Slut","Sekunder"]
-  ];
+function downloadExcel(){
+  const wb = XLSX.utils.book_new();
+
+  const base = Date.now() - (performance.now() - model.sessionStart);
+
+  const rows = [];
+  rows.push(["Lagledare", model.header.leader]);
+  rows.push(["Flöde", model.header.flow]);
+  rows.push(["Datum", model.header.date || new Date(base).toLocaleDateString("sv-SE")]);
+  rows.push([""]);
+  rows.push(["Aktivitet","Start","Slut","Sekunder"]);
+
   model.history.forEach(h=>{
     rows.push([
       h.act,
-      new Date(base+(h.start-model.sessionStart)).toISOString(),
-      new Date(base+(h.end-model.sessionStart)).toISOString(),
-      Math.round((h.end-h.start)/1000)
+      new Date(base + (h.start - model.sessionStart)).toLocaleString("sv-SE"),
+      new Date(base + (h.end - model.sessionStart)).toLocaleString("sv-SE"),
+      Math.round((h.end - h.start)/1000)
     ]);
   });
-  rows.push(["\n"],["SUMMA"],...Object.entries(model.totals).map(([k,v])=>[k,'','',Math.round(v)]));
-  const csv=rows.map(r=>r.join(';')).join('\n');
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
-  a.download='frekvensanalys.csv';
-  a.click();
+
+  rows.push([""]);
+  rows.push(["SUMMA"]);
+  Object.entries(model.totals).forEach(([k, vMs])=>{
+    rows.push([k, "", "", Math.round(vMs/1000)]);
+  });
+
+  const ws1 = XLSX.utils.aoa_to_sheet(rows);
+  XLSX.utils.book_append_sheet(wb, ws1, "Detaljer");
+
+  const catAgg = aggregateByCategory();
+  const rows2 = [["Kategori","Sekunder"]];
+  Object.entries(catAgg).forEach(([k,vMs])=>{
+    rows2.push([k, Math.round(vMs/1000)]);
+  });
+  const ws2 = XLSX.utils.aoa_to_sheet(rows2);
+  XLSX.utils.book_append_sheet(wb, ws2, "Kategorier");
+
+  const subAgg = aggregateBySubcategory();
+  const rows3 = [["Underkategori","Sekunder"]];
+  Object.entries(subAgg).forEach(([k,vMs])=>{
+    rows3.push([k, Math.round(vMs/1000)]);
+  });
+  const ws3 = XLSX.utils.aoa_to_sheet(rows3);
+  XLSX.utils.book_append_sheet(wb, ws3, "Underkategorier");
+
+  XLSX.writeFile(wb, "frekvensanalys.xlsx");
 }
 
-// =========== HELPERS ==========
+// ===== HELPERS =====
 function hash(s){
   let h=0;
   for(let i=0;i<s.length;i++){
@@ -445,30 +826,40 @@ function hash(s){
   }
   return 'h'+Math.abs(h);
 }
-function fmt(sec){
-  sec=Math.max(0,Math.round(sec));
+function fmt(ms){
+  const sec=Math.max(0,Math.round(ms/1000));
   const h=(''+Math.floor(sec/3600)).padStart(2,'0');
   const m=(''+Math.floor((sec%3600)/60)).padStart(2,'0');
   const s=(''+(sec%60)).padStart(2,'0');
   return `${h}:${m}:${s}`;
 }
-function setLive(s){
-  document.getElementById('liveTimer').textContent=fmt(s);
+function setLive(ms){
+  document.getElementById('liveTimer').textContent=fmt(ms);
 }
+function setSession(ms){
+  document.getElementById('sessionTimer').textContent=fmt(ms);
+}
+
 function highlightActiveRow(){
-  // nollställ alla
   document.querySelectorAll('.btnAct').forEach(b=>b.classList.remove('activeAct'));
   document.querySelectorAll('.badge').forEach(b=>b.classList.remove('activeAct'));
+  const quick = document.getElementById('quickGangBtn');
+  if(quick) quick.classList.remove('activeQuick');
 
   if(!model.active) return;
+
   const id = hash(model.active);
   const btn=document.getElementById('btn_'+id);
   const badge=document.getElementById('sum_'+id);
   if(btn) btn.classList.add('activeAct');
   if(badge) badge.classList.add('activeAct');
+
+  if(model.active === "Gång" && quick){
+    quick.classList.add('activeQuick');
+  }
 }
 
-// ====== Varning vid uppdatering/stängning under analys ======
+// Varning vid stängning
 window.addEventListener("beforeunload", function (e) {
   const analysisVisible = document.getElementById('analysis') && !document.getElementById('analysis').hidden;
   if (analysisVisible) {
