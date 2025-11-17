@@ -26,7 +26,6 @@
 
   .wrap{max-width:560px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column}
 
-  /* Tidigare topbar tas bort */
   .topbar{display:none;}
 
   .pageTitle{
@@ -58,7 +57,6 @@
   .sectionTitle{font-weight:800;font-size:15px;margin:8px 14px}
   .fieldLabel{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:0 0 4px 2px;}
 
-  /* Setup-editor */
   details{
     border:1px solid var(--border);
     border-radius:16px;
@@ -93,7 +91,6 @@
   .rowLine input{flex:1}
   .addRow{padding:11px 14px;border-top:1px dashed var(--border);display:flex;gap:8px}
 
-  /* Analysis view – fast toppdel */
   .analysisHeader{
     position:sticky;
     top:0;
@@ -182,7 +179,6 @@
     margin-bottom:4px;
   }
 
-  /* Kategorirad */
   .catTabs{
     margin-top:4px;
     padding:6px;
@@ -340,7 +336,6 @@
     <div class="analysisHeader">
       <div class="card analysisHeaderInner">
 
-        <!-- Rad 1: rubrik + chip, Avsluta -->
         <div class="headerTopRow">
           <div class="headerTitle">
             <h2>Frekvensanalys</h2>
@@ -349,7 +344,6 @@
           <button class="btn secondary headerEnd" onclick="finishSession()">Avsluta</button>
         </div>
 
-        <!-- Rad 2: pågående aktivitet + timers -->
         <div class="headerMiddleRow">
           <div class="currentActCard" id="currentAct">–</div>
           <div class="timerBlock">
@@ -364,10 +358,8 @@
           </div>
         </div>
 
-        <!-- Rad 3: Gång -->
         <button id="quickGangBtn" class="btn ghost headerGang" onclick="quickGang()">Gång</button>
 
-        <!-- Rad 4: Kategoritabs -->
         <div id="catTabs" class="catTabs"></div>
       </div>
     </div>
@@ -397,7 +389,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// Färgkarta per kategori (behåller dina färger)
+// Färgkarta per kategori
 const categoryColors = {
   "Logistik": "#fff3e8",
   "Planering": "#e8f0ff",
@@ -409,7 +401,7 @@ const categoryColors = {
 // ===== DATA =====
 const model = {
   header:{leader:"",flow:"",date:""},
-  tree:[],                 // fylls från Excel
+  tree:[],
   totals:{},
   actMeta:{},
   sessionStart:0,
@@ -457,7 +449,6 @@ async function loadStructureFromExcel(){
 
     if(!catName || !subName || !actName) continue;
 
-    // Hämta / skapa kategori
     if(!treeMap.has(catName)){
       treeMap.set(catName,{
         name: catName,
@@ -468,14 +459,12 @@ async function loadStructureFromExcel(){
     }
     const cat = treeMap.get(catName);
 
-    // Hämta / skapa underkategori
     let sub = cat.subs.find(s => s.name === subName);
     if(!sub){
       sub = { name: subName, acts: [] };
       cat.subs.push(sub);
     }
 
-    // Lägg till aktivitet om inte redan finns
     if(!sub.acts.includes(actName)){
       sub.acts.push(actName);
     }
@@ -490,7 +479,7 @@ function renderEditor(){
   host.innerHTML='';
 
   if(!model.tree.length){
-    host.innerHTML = "<div style='margin:12px 14px;color:#b91c1c;font-size:13px;'>Ingen struktur inläst. Kontrollera att <b>structure.xlsx</b> ligger i samma mapp och har rätt rubriker.</div>";
+    host.innerHTML = "<div style='margin:12px 14px;color:#b91c1c;font-size:13px;'>Ingen struktur inläst. Kontrollera att <b>structure.xlsx</b> ligger i samma mapp och har rubrikerna Kategori, Underkategori, Aktivitet.</div>";
     return;
   }
 
@@ -837,7 +826,7 @@ function downloadExcel(){
   XLSX.utils.book_append_sheet(wb, ws1, "Detaljer");
 
   const catAgg = aggregateByCategory();
-  const rows2 = [["Kategori","Sekunder"]]];
+  const rows2 = [["Kategori","Sekunder"]];
   Object.entries(catAgg).forEach(([k,vMs])=>{
     rows2.push([k, Math.round(vMs/1000)]);
   });
@@ -897,7 +886,6 @@ function highlightActiveRow(){
   }
 }
 
-// Varning vid stängning
 window.addEventListener("beforeunload", function (e) {
   const analysisVisible = document.getElementById('analysis') && !document.getElementById('analysis').hidden;
   if (analysisVisible) {
@@ -915,7 +903,7 @@ loadStructureFromExcel()
   })
   .catch(err => {
     console.error(err);
-    alert("Kunde inte läsa structure.xlsx. Kontrollera att filen ligger i samma mapp och har rubrikerna Kategori, Underkategori, Aktivitet.");
+    alert("Kunde inte läsa structure.xlsx. Om du kör filen direkt från datorn (file://) är det normalt – läsning via fetch blockeras. Ladda upp till GitHub eller kör via en enkel webserver för att prova Excelfilen.");
     renderEditor();
   });
 </script>
