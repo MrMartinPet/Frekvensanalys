@@ -15,7 +15,17 @@
     --accent:#2563eb;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
-  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+
+  html,body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+
+    /* Enda tillägget nu */
+    overscroll-behavior-y: none;
+  }
+
   .wrap{max-width:560px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column}
 
   /* Tidigare topbar tas bort */
@@ -26,6 +36,7 @@
     font-size:20px;
     font-weight:800;
   }
+
 
   .chip{
     display:inline-flex;
@@ -313,7 +324,7 @@
       </div>
       <div class="row" style="margin-top:8px">
         <div class="col">
-          <button class="btn" onclick="startSession()">Starta analysen</button>
+          <button class="btn" onclick="startSession()">Starta analmys</button>
         </div>
       </div>
     </div>
@@ -941,4 +952,3 @@ renderEditor();
 </script>
 </body>
 </html>
-
