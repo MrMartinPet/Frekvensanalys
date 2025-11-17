@@ -57,7 +57,6 @@
   .sectionTitle{font-weight:800;font-size:15px;margin:8px 14px}
   .fieldLabel{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:0 0 4px 2px;}
 
-  /* Analys – toppdel */
   .analysisHeader{
     position:sticky;
     top:0;
@@ -167,7 +166,6 @@
     margin-bottom:4px;
   }
 
-  /* Kategorirad (både setup och analys) */
   .catTabs{
     margin-top:4px;
     padding:6px;
@@ -224,7 +222,6 @@
     gap:8px;
   }
 
-  /* Modernare aktivitetsknappar */
   .btnAct{
     padding:12px 14px;
     border-radius:999px;
@@ -492,7 +489,7 @@ async function loadStructureFromExcel(){
   model.tree = Array.from(treeMap.values());
 }
 
-// ===== SETUP-VY (för urval av aktiviteter) =====
+// ===== SETUP-VY =====
 function renderSetupCategoryTabs(){
   const host = document.getElementById('setupCatTabs');
   if(!host) return;
@@ -516,13 +513,11 @@ function renderSetupActList(){
   if(!host) return;
   host.innerHTML='';
 
-  const cat = model.tree[model.selectedCatIndex] || model.tree[0];
+  const catIndex = model.selectedCatIndex;
+  const cat = model.tree[catIndex] || model.tree[0];
   if(!cat) return;
 
-  cat.subs.forEach(sub=>{
-    const visibleActs = sub.acts.filter(a => !model.hiddenActs.has(a));
-    if(!visibleActs.length) return;
-
+  cat.subs.forEach((sub, si)=>{
     const subBlock=document.createElement('div');
     subBlock.className='subBlock';
 
@@ -533,6 +528,8 @@ function renderSetupActList(){
 
     const grid=document.createElement('div');
     grid.className='actGrid';
+
+    const visibleActs = sub.acts.filter(a => !model.hiddenActs.has(a));
 
     visibleActs.forEach(act=>{
       const card=document.createElement('div');
@@ -547,6 +544,16 @@ function renderSetupActList(){
     });
 
     subBlock.appendChild(grid);
+
+    // Inmatning för ny aktivitet i denna underkategori (endast på setup-sidan)
+    const inputId = `setupNewAct_${catIndex}_${si}`;
+    const add=document.createElement('div');
+    add.className='addRow';
+    add.innerHTML =
+      `<input id="${inputId}" placeholder="Ny aktivitet i ${sub.name}">`+
+      `<button class="btn small" style="width:auto" type="button" onclick="addSetupActivity(${catIndex},${si}, '${inputId}')">+ Lägg till</button>`;
+    subBlock.appendChild(add);
+
     host.appendChild(subBlock);
   });
 }
@@ -555,6 +562,33 @@ function hideActivity(name){
   if(!name) return;
   model.hiddenActs.add(name);
   renderSetupActList();
+  if(document.getElementById('analysis') && !document.getElementById('analysis').hidden){
+    renderCategoryTabs();
+    renderActList();
+  }
+}
+
+function addSetupActivity(ci, si, inputId){
+  const input = document.getElementById(inputId);
+  if(!input) return;
+  const name = input.value.trim();
+  if(!name) return;
+
+  const cat = model.tree[ci];
+  if(!cat) return;
+  const sub = cat.subs[si];
+  if(!sub) return;
+
+  if(!sub.acts.includes(name)){
+    sub.acts.push(name);
+  }
+
+  // säkerställ att den inte är dold
+  model.hiddenActs.delete(name);
+
+  input.value = '';
+  renderSetupActList();
+
   if(document.getElementById('analysis') && !document.getElementById('analysis').hidden){
     renderCategoryTabs();
     renderActList();
@@ -603,7 +637,6 @@ function startSession(){
   chip.hidden=false;
   chip.textContent=`${model.header.leader||'Lagledare'} · ${model.header.flow||'Flöde'} · ${new Date().toLocaleDateString('sv-SE')}`;
 
-  // Dölj gång-snabbknappen om Gång är dold
   const quick = document.getElementById('quickGangBtn');
   if(quick){
     if(model.hiddenActs.has("Gång")){
@@ -675,7 +708,6 @@ function renderActList(){
 
     subBlock.appendChild(grid);
 
-    // Ny aktivitet i Övrigt – fältet längst ned
     if(cat.isOther && subIndex === cat.subs.length-1){
       const add=document.createElement('div');
       add.className='addRow';
@@ -954,7 +986,6 @@ window.addEventListener("beforeunload", function (e) {
   }
 });
 
-// boot – ladda excel först
 loadStructureFromExcel()
   .then(() => {
     renderSetupCategoryTabs();
