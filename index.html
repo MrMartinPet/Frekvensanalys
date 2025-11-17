@@ -57,48 +57,15 @@
   .sectionTitle{font-weight:800;font-size:15px;margin:8px 14px}
   .fieldLabel{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:0 0 4px 2px;}
 
-  details{
-    border:1px solid var(--border);
-    border-radius:16px;
-    overflow:hidden;
-    margin:10px 14px;
-    background:#f9fafb;
-  }
-  details > summary{
-    list-style:none;
-    padding:14px 16px;
-    font-weight:900;
-    font-size:18px;
-    text-transform:uppercase;
-    letter-spacing:0.06em;
-    background:#dbeafe;
-    border-bottom:1px solid #c7d2fe;
-  }
-  details > summary::-webkit-details-marker{display:none}
-  .subTitle{
-    padding:10px 18px 6px 18px;
-    font-weight:800;
-    font-size:15px;
-    color:#1f2937;
-    background:#f8f9ff;
-    border-left:4px solid #c3c9ef;
-  }
-  .subTitle.sub--small{
-    padding-top:10px;
-    padding-bottom:6px;
-  }
-  .rowLine{display:flex;gap:8px;align-items:center;padding:9px 14px;border-top:1px solid var(--border)}
-  .rowLine input{flex:1}
-  .addRow{padding:11px 14px;border-top:1px dashed var(--border);display:flex;gap:8px}
-
-  .isHeader{
+  /* Analys – toppdel */
+  .analysisHeader{
     position:sticky;
     top:0;
     z-index:25;
     background:var(--bg);
     padding:4px 0 4px 0;
   }
-  .isHeaderInner{
+  .analysisHeaderInner{
     margin:4px 14px 4px 14px;
     padding:8px 10px 10px 10px;
     border-radius:18px;
@@ -121,9 +88,30 @@
     font-weight:800;
   }
 
+  .headerActions{
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    gap:6px;
+  }
+
   .headerEnd{
-    padding:9px 10px;
-    font-size:14px;
+    padding:8px 10px;
+    font-size:13px;
+    white-space:nowrap;
+  }
+
+  .iconBtn{
+    width:36px;
+    height:36px;
+    border-radius:999px;
+    border:none;
+    background:#e5e7eb;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    font-size:16px;
+    cursor:pointer;
   }
 
   .headerMiddleRow{
@@ -179,6 +167,7 @@
     margin-bottom:4px;
   }
 
+  /* Kategorirad (både setup och analys) */
   .catTabs{
     margin-top:4px;
     padding:6px;
@@ -235,19 +224,27 @@
     gap:8px;
   }
 
+  /* Modernare aktivitetsknappar */
   .btnAct{
-    padding:9px 11px;
-    border-radius:10px;
-    border:1px solid #e2e4ea;
-    background:#ffffff;
+    padding:12px 14px;
+    border-radius:999px;
+    border:none;
+    background:#f9fafb;
+    box-shadow:0 1px 3px rgba(15,23,42,.08);
     font-weight:600;
     font-size:13px;
     text-align:left;
     line-height:1.3;
     cursor:pointer;
     flex:1;
+    transition:box-shadow .15s ease, transform .1s ease, background-color .15s ease;
   }
-  .btnAct.act--small{font-size:13px;padding:9px 11px}
+  .btnAct.act--small{font-size:13px;padding:12px 14px}
+  .btnAct:active{
+    transform:scale(0.98);
+    box-shadow:0 0 0 rgba(0,0,0,0);
+    background:#e5e7eb;
+  }
 
   .badge{
     padding:7px 6px;
@@ -263,6 +260,7 @@
     background:#ffedd5 !important;
     color:#7c2d12 !important;
     border:2px solid #fb923c !important;
+    box-shadow:0 0 0 rgba(0,0,0,0) !important;
   }
   .badge.activeAct{
     background:#7c2d12 !important;
@@ -272,6 +270,18 @@
     background:#ffedd5 !important;
     color:#7c2d12 !important;
     border:2px solid #fb923c !important;
+  }
+
+  .btnRemove{
+    padding:6px 10px;
+    border-radius:999px;
+    border:none;
+    background:#fee2e2;
+    color:#b91c1c;
+    font-size:11px;
+    font-weight:600;
+    cursor:pointer;
+    white-space:nowrap;
   }
 
   canvas{max-width:100%}
@@ -293,6 +303,14 @@
     border-color:#2563eb;
     font-weight:700;
   }
+
+  .addRow{
+    padding:11px 14px;
+    border-top:1px dashed var(--border);
+    display:flex;
+    gap:8px;
+    margin-top:8px;
+  }
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -309,26 +327,23 @@
       </div>
       <div class="row" style="margin-top:8px">
         <div class="col">
-          <label class="fieldLabel" for="date">Datum för </label>
+          <label class="fieldLabel" for="date">Datum för analys</label>
           <input id="date" type="date">
         </div>
       </div>
       <div class="row" style="margin-top:8px">
         <div class="col">
-          <button class="btn" onclick="startSession()">Start Analysis</button>
+          <button class="btn" onclick="startSession()">Starta analys</button>
         </div>
       </div>
     </div>
 
-    <div class="sectionTitle">Kategorier, underkategorier & aktiviteter</div>
-    <div id="editor"></div>
-
     <div class="card">
-      <div class="row">
-        <input id="newCatName" placeholder="Ny kategori">
-        <button class="btn ghost" onclick="addCategory()">Lägg till kategori</button>
-      </div>
+      <div class="sectionTitle" style="margin-top:0;">Välj aktiviteter som ska ingå</div>
+      <div id="setupCatTabs" class="catTabs"></div>
     </div>
+
+    <div id="setupActList" class="list"></div>
   </section>
 
   <!-- ANALYS -->
@@ -341,7 +356,10 @@
             <h2>Frekvensanalys</h2>
             <div id="sessionChip" class="chip" hidden></div>
           </div>
-          <button class="btn secondary headerEnd" onclick="finishSession()">Avsluta</button>
+          <div class="headerActions">
+            <button class="iconBtn" onclick="downloadExcel()" title="Spara nu">💾</button>
+            <button class="btn secondary headerEnd" onclick="finishSession()">Avsluta</button>
+          </div>
         </div>
 
         <div class="headerMiddleRow">
@@ -372,7 +390,7 @@
     <div class="card">
       <div class="row">
         <div class="col"><button class="btn ghost" onclick="downloadExcel()">Exportera till Excel</button></div>
-        <div class="col"><button class="btn" onclick="window.location.reload()">Ny analys</button></div>
+        <div class="col"><button class="btn" onclick="confirmNewAnalysis()">Ny analys</button></div>
       </div>
     </div>
     <div class="card" id="summaryTotals"></div>
@@ -411,7 +429,8 @@ const model = {
   history:[],
   chartMode:"category",
   chartInstance:null,
-  selectedCatIndex:0
+  selectedCatIndex:0,
+  hiddenActs:new Set()
 };
 
 // ===== LÄS STRUKTUR FRÅN EXCEL =====
@@ -473,60 +492,73 @@ async function loadStructureFromExcel(){
   model.tree = Array.from(treeMap.values());
 }
 
-// ===== SETUP EDITOR =====
-function renderEditor(){
-  const host = document.getElementById('editor');
+// ===== SETUP-VY (för urval av aktiviteter) =====
+function renderSetupCategoryTabs(){
+  const host = document.getElementById('setupCatTabs');
+  if(!host) return;
   host.innerHTML='';
-
   if(!model.tree.length){
-    host.innerHTML = "<div style='margin:12px 14px;color:#b91c1c;font-size:13px;'>Ingen struktur inläst. Kontrollera att <b>structure.xlsx</b> ligger i samma mapp och har rubrikerna Kategori, Underkategori, Aktivitet.</div>";
+    host.innerHTML = "<div style='font-size:13px;color:#b91c1c;'>Ingen struktur inläst. Kontrollera structure.xlsx.</div>";
     return;
   }
-
-  model.tree.forEach((cat,ci)=>{
-    const d=document.createElement('details');
-    d.style.background=cat.color||'#fff';
-    d.open=false;
-    const s=document.createElement('summary'); s.textContent=cat.name; d.appendChild(s);
-
-    cat.subs.forEach((sub,si)=>{
-      const t=document.createElement('div');
-      t.className='subTitle sub--small';
-      t.textContent=sub.name;
-      d.appendChild(t);
-
-      sub.acts.forEach((act,ai)=>{
-        const r=document.createElement('div'); r.className='rowLine';
-        r.innerHTML=`<input value="${act}" onchange="renameAct(${ci},${si},${ai},this.value)">`+
-          `<button class='btn small ghost' style='width:auto' onclick='delAct(${ci},${si},${ai})'>Ta bort</button>`;
-        d.appendChild(r);
-      });
-      const add=document.createElement('div'); add.className='addRow';
-      add.innerHTML=`<input placeholder='Ny aktivitet i ${sub.name}'>`+
-        `<button class='btn small' style='width:auto' onclick='pushAct(${ci},${si}, this.previousElementSibling.value)'>+ Lägg till</button>`;
-      d.appendChild(add);
-    });
-
-    const ren=document.createElement('div'); ren.className='addRow';
-    ren.innerHTML=`<input value='${cat.name}' onchange='renameCat(${ci},this.value)'>`;
-    d.appendChild(ren);
-    host.appendChild(d);
+  model.tree.forEach((cat,idx)=>{
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='catTabBtn'+(idx===model.selectedCatIndex?' active':'');
+    btn.textContent=cat.name.toUpperCase();
+    btn.onclick=()=>{ model.selectedCatIndex=idx; renderSetupCategoryTabs(); renderSetupActList(); };
+    host.appendChild(btn);
   });
 }
-function addCategory(){
-  const n=document.getElementById('newCatName').value.trim();
-  if(!n) return;
-  model.tree.push({name:n,color:'#fff',subs:[]});
-  document.getElementById('newCatName').value='';
-  renderEditor();
+
+function renderSetupActList(){
+  const host=document.getElementById('setupActList');
+  if(!host) return;
+  host.innerHTML='';
+
+  const cat = model.tree[model.selectedCatIndex] || model.tree[0];
+  if(!cat) return;
+
+  cat.subs.forEach(sub=>{
+    const visibleActs = sub.acts.filter(a => !model.hiddenActs.has(a));
+    if(!visibleActs.length) return;
+
+    const subBlock=document.createElement('div');
+    subBlock.className='subBlock';
+
+    const title=document.createElement('div');
+    title.className='subBlockTitle';
+    title.textContent=sub.name;
+    subBlock.appendChild(title);
+
+    const grid=document.createElement('div');
+    grid.className='actGrid';
+
+    visibleActs.forEach(act=>{
+      const card=document.createElement('div');
+      card.className='actCard';
+
+      const safeAct = act.replaceAll('"',"&quot;");
+      card.innerHTML =
+        `<button class="btnAct act--small" type="button">${act}</button>`+
+        `<button class="btnRemove" type="button" onclick="hideActivity('${safeAct}')">Ta bort</button>`;
+
+      grid.appendChild(card);
+    });
+
+    subBlock.appendChild(grid);
+    host.appendChild(subBlock);
+  });
 }
-function renameCat(ci,v){ model.tree[ci].name=v; renderEditor(); }
-function renameAct(ci,si,ai,v){ model.tree[ci].subs[si].acts[ai]=v; renderEditor(); }
-function delAct(ci,si,ai){ model.tree[ci].subs[si].acts.splice(ai,1); renderEditor(); }
-function pushAct(ci,si,name){
+
+function hideActivity(name){
   if(!name) return;
-  model.tree[ci].subs[si].acts.push(name);
-  renderEditor();
+  model.hiddenActs.add(name);
+  renderSetupActList();
+  if(document.getElementById('analysis') && !document.getElementById('analysis').hidden){
+    renderCategoryTabs();
+    renderActList();
+  }
 }
 
 // ===== ANALYS =====
@@ -549,7 +581,11 @@ function startSession(){
   buildActMeta();
 
   model.totals={};
-  model.tree.forEach(c=>c.subs.forEach(s=>s.acts.forEach(a=>model.totals[a]=0)));
+  model.tree.forEach(c=>c.subs.forEach(s=>s.acts.forEach(a=>{
+    if(!model.hiddenActs.has(a)){
+      model.totals[a]=0;
+    }
+  })));
 
   model.sessionStart=performance.now();
   model.history=[];
@@ -567,11 +603,22 @@ function startSession(){
   chip.hidden=false;
   chip.textContent=`${model.header.leader||'Lagledare'} · ${model.header.flow||'Flöde'} · ${new Date().toLocaleDateString('sv-SE')}`;
 
+  // Dölj gång-snabbknappen om Gång är dold
+  const quick = document.getElementById('quickGangBtn');
+  if(quick){
+    if(model.hiddenActs.has("Gång")){
+      quick.style.display = "none";
+    }else{
+      quick.style.display = "block";
+    }
+  }
+
   tick();
 }
 
 function renderCategoryTabs(){
   const host=document.getElementById('catTabs');
+  if(!host) return;
   host.innerHTML='';
   model.tree.forEach((cat,idx)=>{
     const btn=document.createElement('button');
@@ -592,6 +639,7 @@ function selectCategory(idx){
 
 function renderActList(){
   const host=document.getElementById('actList');
+  if(!host) return;
   host.innerHTML='';
 
   const cat = model.tree[model.selectedCatIndex] || model.tree[0];
@@ -612,6 +660,8 @@ function renderActList(){
     grid.className='actGrid';
 
     sub.acts.forEach(act=>{
+      if(model.hiddenActs.has(act)) return;
+
       const card=document.createElement('div');
       card.className='actCard';
 
@@ -623,6 +673,9 @@ function renderActList(){
       grid.appendChild(card);
     });
 
+    subBlock.appendChild(grid);
+
+    // Ny aktivitet i Övrigt – fältet längst ned
     if(cat.isOther && subIndex === cat.subs.length-1){
       const add=document.createElement('div');
       add.className='addRow';
@@ -633,7 +686,6 @@ function renderActList(){
       subBlock.appendChild(add);
     }
 
-    subBlock.appendChild(grid);
     host.appendChild(subBlock);
   });
 
@@ -844,6 +896,12 @@ function downloadExcel(){
   XLSX.writeFile(wb, "frekvensanalys.xlsx");
 }
 
+function confirmNewAnalysis(){
+  if(confirm("Vill du starta en ny analys? Tidigare data försvinner om du inte exporterat till Excel.")){
+    window.location.reload();
+  }
+}
+
 // ===== HELPERS =====
 function hash(s){
   let h=0;
@@ -899,14 +957,15 @@ window.addEventListener("beforeunload", function (e) {
 // boot – ladda excel först
 loadStructureFromExcel()
   .then(() => {
-    renderEditor();
+    renderSetupCategoryTabs();
+    renderSetupActList();
   })
   .catch(err => {
     console.error(err);
-    alert("Kunde inte läsa structure.xlsx. Om du kör filen direkt från datorn (file://) är det normalt – läsning via fetch blockeras. Ladda upp till GitHub eller kör via en enkel webserver för att prova Excelfilen.");
-    renderEditor();
+    alert("Kunde inte läsa structure.xlsx. Om du kör filen direkt från datorn (file://) är det normalt – läsning via fetch blockeras. Ladda upp till GitHub eller kör via en webserver för att prova Excelfilen.");
+    renderSetupCategoryTabs();
+    renderSetupActList();
   });
 </script>
 </body>
 </html>
-
