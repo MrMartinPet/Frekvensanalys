@@ -21,8 +21,6 @@
     background:var(--bg);
     color:var(--text);
     font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-
-    /* Enda tillägget nu */
     overscroll-behavior-y: none;
   }
 
@@ -36,7 +34,6 @@
     font-size:20px;
     font-weight:800;
   }
-
 
   .chip{
     display:inline-flex;
@@ -99,7 +96,7 @@
   /* Analysis view – fast toppdel */
   .analysisHeader{
     position:sticky;
-    top:0;                 /* direkt mot skärmens överkant */
+    top:0;
     z-index:25;
     background:var(--bg);
     padding:4px 0 4px 0;
@@ -307,8 +304,6 @@
 <body>
 <div class="wrap">
 
-
-
   <!-- SETUP -->
   <section id="setup">
     <div class="card">
@@ -324,7 +319,7 @@
       </div>
       <div class="row" style="margin-top:8px">
         <div class="col">
-          <button class="btn" onclick="startSession()">Starta analmys</button>
+          <button class="btn" onclick="startSession()">Starta analys</button>
         </div>
       </div>
     </div>
@@ -402,122 +397,19 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+// Färgkarta per kategori (behåller dina färger)
+const categoryColors = {
+  "Logistik": "#fff3e8",
+  "Planering": "#e8f0ff",
+  "Problem": "#fff9db",
+  "Möten": "#eaf7e8",
+  "Övrigt": "#f5e0ff"
+};
+
 // ===== DATA =====
 const model = {
   header:{leader:"",flow:"",date:""},
-  tree:[
-    {name:"Logistik", color:"#fff3e8", subs:[
-      {name:"Från inruta", acts:[
-        "Material till fräslokal",
-        "Material till torg",
-        "Material till Formning",
-        "Verktyg till Limhjul",
-        "Verktyg till Fräslokal",
-        "Emballage till Fräslokal",
-        "Binge till fräslokal",
-        "Övrigt in till flöde"
-      ]},
-
-      {name:"Från Materialtorg", acts:[
-        "Material till Limhjul",
-        "Material till Fräs"
-      ]},
-
-      {name:"Från Formning", acts:[
-        "Material till Frästorg",
-        "Material till Limtorg LH",
-        "Material till Limtorg Byrå",
-        "Material till utruta",
-        "Formverktyg till utruta"
-      ]},
-
-      {name:"Från Fräsning", acts:[
-        "Verktyg till Hans",
-        "Verktyg till ställage i fräs",
-        "Fräsverktyg till utruta",
-        "Tomvinkel till torg",
-        "Material till monteringstorg",
-        "Verktyg till bäddfräs (ställage)"
-      ]},
-
-      {name:"Från Limning", acts:[
-        "Verktyg till Laura",
-        "Verktyg till vagnsplats golv",
-        "Verktyg till utruta",
-        "Tompall till utruta",
-        "Överblivet material till utruta",
-        "Vinkel till torg"
-      ]},
-
-      {name:"Från Hiss/Golv", acts:[
-        "Laura till LH",
-        "Hans till fräslokal",
-        "Golvplats till LH"
-      ]},
-
-      {name:"Övrigt logistik", acts:[
-        "Packlåda till fräs",
-        "Tompall/vagn till fräs",
-        "Tomvagn till fräs",
-        "Ingående komponenter"
-      ]}
-    ]},
-
-    {name:"Planering", color:"#e8f0ff", subs:[
-      {name:"Monitor", acts:[
-        "Planering Formning",
-        "Planering Borrning",
-        "Planering Limning",
-        "Planering Fräsning",
-        "Planering Montering",
-        "Planering Kapning"
-      ]},
-
-      {name:"App", acts:[
-        "Beställning I app"
-      ]},
-
-      {name:"Excel", acts:[
-        "Planering Excel"
-      ]}
-    ]},
-
-    {name:"Problem", color:"#fff9db", subs:[
-      {name:"Problemlösning", acts:[
-        "Kvalitetsproblem",
-        "Verktygsproblem",
-        "Materialproblem",
-        "Emballageproblem",
-        "Maskinproblem"
-      ]}
-    ]},
-
-    {name:"Möten", color:"#eaf7e8", subs:[
-      {name:"Planerat möte", acts:[
-        "Skiftstartsmöte",
-        "Morgonmöte (8.00)",
-        "Personalplaneringsmöte",
-        "Skiftöverlämningsmöte",
-        "Övrigt möte",
-        "QRQC",
-        "QRSC"
-      ]}
-    ]},
-
-    {name:"Övrigt", color:"#f5e0ff", isOther:true, subs:[
-      {name:"Övrigt", acts:[
-        "Gång",
-        "Rast",
-        "Ingenting",
-        "Personalplanering löpande",
-        "Förberedelse av Överlämning",
-        "Tejpa rutor",
-        "Blanda lim",
-        "Hjälpa till med ställ",
-        "Rastkörning"
-      ]}
-    ]}
-  ],
+  tree:[],                 // fylls från Excel
   totals:{},
   actMeta:{},
   sessionStart:0,
@@ -530,10 +422,78 @@ const model = {
   selectedCatIndex:0
 };
 
+// ===== LÄS STRUKTUR FRÅN EXCEL =====
+async function loadStructureFromExcel(){
+  const res = await fetch("structure.xlsx");
+  if(!res.ok){
+    throw new Error("Kunde inte hämta structure.xlsx");
+  }
+  const buf = await res.arrayBuffer();
+
+  const wb = XLSX.read(buf, { type: "array" });
+  const sheetName = wb.SheetNames[0];
+  const sheet = wb.Sheets[sheetName];
+
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+  const header = rows[0] || [];
+  const idxCat = header.indexOf("Kategori");
+  const idxSub = header.indexOf("Underkategori");
+  const idxAct = header.indexOf("Aktivitet");
+
+  if(idxCat === -1 || idxSub === -1 || idxAct === -1){
+    throw new Error("Filen måste ha rubrikerna: Kategori, Underkategori, Aktivitet");
+  }
+
+  const treeMap = new Map();
+
+  for(let i=1; i<rows.length; i++){
+    const row = rows[i];
+    if(!row) continue;
+
+    const catName = (row[idxCat] || "").toString().trim();
+    const subName = (row[idxSub] || "").toString().trim();
+    const actName = (row[idxAct] || "").toString().trim();
+
+    if(!catName || !subName || !actName) continue;
+
+    // Hämta / skapa kategori
+    if(!treeMap.has(catName)){
+      treeMap.set(catName,{
+        name: catName,
+        color: categoryColors[catName] || "#ffffff",
+        subs: [],
+        isOther: catName === "Övrigt"
+      });
+    }
+    const cat = treeMap.get(catName);
+
+    // Hämta / skapa underkategori
+    let sub = cat.subs.find(s => s.name === subName);
+    if(!sub){
+      sub = { name: subName, acts: [] };
+      cat.subs.push(sub);
+    }
+
+    // Lägg till aktivitet om inte redan finns
+    if(!sub.acts.includes(actName)){
+      sub.acts.push(actName);
+    }
+  }
+
+  model.tree = Array.from(treeMap.values());
+}
+
 // ===== SETUP EDITOR =====
 function renderEditor(){
   const host = document.getElementById('editor');
   host.innerHTML='';
+
+  if(!model.tree.length){
+    host.innerHTML = "<div style='margin:12px 14px;color:#b91c1c;font-size:13px;'>Ingen struktur inläst. Kontrollera att <b>structure.xlsx</b> ligger i samma mapp och har rätt rubriker.</div>";
+    return;
+  }
+
   model.tree.forEach((cat,ci)=>{
     const d=document.createElement('details');
     d.style.background=cat.color||'#fff';
@@ -646,6 +606,7 @@ function renderActList(){
   host.innerHTML='';
 
   const cat = model.tree[model.selectedCatIndex] || model.tree[0];
+  if(!cat) return;
 
   cat.subs.forEach((sub,subIndex)=>{
     if(!sub.acts || !sub.acts.length) return;
@@ -674,13 +635,13 @@ function renderActList(){
     });
 
     if(cat.isOther && subIndex === cat.subs.length-1){
-      const addRow=document.createElement('div');
-      addRow.className='addRow';
-      addRow.style.borderTopStyle='solid';
-      addRow.innerHTML =
+      const add=document.createElement('div');
+      add.className='addRow';
+      add.style.borderTopStyle='solid';
+      add.innerHTML =
         `<input id="otherNewAct" placeholder="Ny aktivitet i Övrigt">`+
         `<button class="btn small" style="width:auto" onclick="addOtherActivity()">+ Lägg till</button>`;
-      subBlock.appendChild(addRow);
+      subBlock.appendChild(add);
     }
 
     subBlock.appendChild(grid);
@@ -876,7 +837,7 @@ function downloadExcel(){
   XLSX.utils.book_append_sheet(wb, ws1, "Detaljer");
 
   const catAgg = aggregateByCategory();
-  const rows2 = [["Kategori","Sekunder"]];
+  const rows2 = [["Kategori","Sekunder"]]];
   Object.entries(catAgg).forEach(([k,vMs])=>{
     rows2.push([k, Math.round(vMs/1000)]);
   });
@@ -947,8 +908,16 @@ window.addEventListener("beforeunload", function (e) {
   }
 });
 
-// boot
-renderEditor();
+// boot – ladda excel först
+loadStructureFromExcel()
+  .then(() => {
+    renderEditor();
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Kunde inte läsa structure.xlsx. Kontrollera att filen ligger i samma mapp och har rubrikerna Kategori, Underkategori, Aktivitet.");
+    renderEditor();
+  });
 </script>
 </body>
 </html>
