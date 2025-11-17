@@ -91,14 +91,14 @@
   .rowLine input{flex:1}
   .addRow{padding:11px 14px;border-top:1px dashed var(--border);display:flex;gap:8px}
 
-  .analysisHeader{
+  .isHeader{
     position:sticky;
     top:0;
     z-index:25;
     background:var(--bg);
     padding:4px 0 4px 0;
   }
-  .analysisHeaderInner{
+  .isHeaderInner{
     margin:4px 14px 4px 14px;
     padding:8px 10px 10px 10px;
     border-radius:18px;
@@ -309,13 +309,13 @@
       </div>
       <div class="row" style="margin-top:8px">
         <div class="col">
-          <label class="fieldLabel" for="date">Datum för analys</label>
+          <label class="fieldLabel" for="date">Datum för </label>
           <input id="date" type="date">
         </div>
       </div>
       <div class="row" style="margin-top:8px">
         <div class="col">
-          <button class="btn" onclick="startSession()">Starta analys</button>
+          <button class="btn" onclick="startSession()">Start Analysis</button>
         </div>
       </div>
     </div>
@@ -909,3 +909,4 @@ loadStructureFromExcel()
 </script>
 </body>
 </html>
+
