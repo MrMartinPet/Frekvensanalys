@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Frekvensanalys – Lagledare</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" />
-
 <style>
   :root{
     --bg:#f3f4fb;
@@ -14,100 +13,300 @@
     --text:#111827;
     --muted:#6b7280;
     --accent:#2563eb;
-    --good:#16a34a;
-    --warn:#fb923c;
-    --warnbg:#ffedd5;
-    --warntext:#7c2d12;
-    --shadow:0 10px 24px rgba(15,23,42,.04);
-    --radius:16px;
   }
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+
   html,body{
     margin:0;
     background:var(--bg);
     color:var(--text);
     font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-    overscroll-behavior-y:none;
+    overscroll-behavior-y: none;
   }
+
   .wrap{max-width:560px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column}
-  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px;margin:12px 14px}
+
+  .topbar{display:none;}
+
+  .pageTitle{
+    margin:10px 14px 4px 14px;
+    font-size:20px;
+    font-weight:800;
+  }
+
+  .chip{
+    display:inline-flex;
+    align-items:center;
+    margin-top:4px;
+    padding:4px 9px;
+    border-radius:999px;
+    background:#e0edff;
+    font-weight:600;
+    font-size:11px;
+    color:#1f2933
+  }
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 24px rgba(15,23,42,.04);padding:12px;margin:12px 14px}
   .row{display:flex;gap:10px}
   .col{flex:1}
   input,select{width:100%;padding:12px 11px;border:1px solid var(--border);border-radius:12px;background:#fff;font-size:15px}
-  .btn{display:inline-flex;align-items:center;justify-content:center;width:100%;padding:12px 10px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-weight:800;font-size:15px;cursor:pointer}
+  .btn{display:inline-flex;align-items:center;justify-content:center;width:100%;padding:12px 10px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-weight:700;font-size:15px;cursor:pointer}
   .btn.secondary{background:#111827}
   .btn.ghost{background:#e5e7eb;color:#111827}
-  .btn.small{padding:9px 10px;font-size:13px;width:auto}
-  .sectionTitle{font-weight:900;font-size:15px;margin:8px 14px}
-  .fieldLabel{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:0 0 4px 2px}
-  .chip{
-    display:inline-flex;align-items:center;margin-top:4px;padding:4px 9px;border-radius:999px;
-    background:#e0edff;font-weight:700;font-size:11px;color:#1f2933
+  .btn.small{padding:9px 10px;font-size:13px}
+  .sectionTitle{font-weight:800;font-size:15px;margin:8px 14px}
+  .fieldLabel{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:0 0 4px 2px;}
+
+  .analysisHeader{
+    position:sticky;
+    top:0;
+    z-index:25;
+    background:var(--bg);
+    padding:4px 0 4px 0;
+  }
+  .analysisHeaderInner{
+    margin:4px 14px 4px 14px;
+    padding:8px 10px 10px 10px;
+    border-radius:18px;
   }
 
-  .analysisHeader{position:sticky;top:0;z-index:25;background:var(--bg);padding:4px 0}
-  .analysisHeaderInner{margin:4px 14px 4px 14px;padding:8px 10px 10px 10px;border-radius:18px}
   .headerTopRow{
-    display:grid;grid-template-columns:1.3fr 1fr;gap:8px;align-items:center;margin-bottom:6px
+    display:grid;
+    grid-template-columns:1.4fr 1fr;
+    gap:6px;
+    align-items:center;
+    margin-bottom:6px;
   }
-  .headerTitle h2{margin:0;font-size:17px;font-weight:900}
-  .headerActions{display:flex;justify-content:flex-end;align-items:center;gap:6px;flex-wrap:wrap}
-  .headerEnd{padding:8px 10px;font-size:13px;white-space:nowrap}
-  .iconBtn{
-    width:36px;height:36px;border-radius:999px;border:none;background:#e5e7eb;
-    display:inline-flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer
+  .headerTitle{
+    display:flex;
+    flex-direction:column;
+  }
+  .headerTitle h2{
+    margin:0;
+    font-size:17px;
+    font-weight:800;
   }
 
-  .headerMiddleRow{display:grid;grid-template-columns:1.4fr 1fr;gap:6px;margin-bottom:6px}
-  .currentActCard{
-    border-radius:14px;border:2px solid var(--warn);background:var(--warnbg);color:var(--warntext);
-    padding:8px 10px;font-weight:900;font-size:15px;min-height:52px;display:flex;align-items:center
+  .headerActions{
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    gap:6px;
   }
-  .timerBlock{display:flex;flex-direction:column;gap:6px}
+
+  .headerEnd{
+    padding:8px 10px;
+    font-size:13px;
+    white-space:nowrap;
+  }
+
+  .iconBtn{
+    width:36px;
+    height:36px;
+    border-radius:999px;
+    border:none;
+    background:#e5e7eb;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    font-size:16px;
+    cursor:pointer;
+  }
+
+  .headerMiddleRow{
+    display:grid;
+    grid-template-columns:1.4fr 1fr;
+    gap:6px;
+    margin-bottom:6px;
+  }
+
+  .currentActCard{
+    border-radius:14px;
+    border:2px solid #fb923c;
+    background:#ffedd5;
+    color:#7c2d12;
+    padding:8px 10px;
+    font-weight:700;
+    font-size:15px;
+    min-height:52px;
+    display:flex;
+    align-items:center;
+  }
+
+  .timerBlock{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
   .timer{
-    border-radius:14px;padding:6px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900
+    border-radius:14px;
+    padding:6px 8px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    font-weight:800;
+  }
+  .timer.timerCurrent{
+    background:linear-gradient(135deg,#22c55e,#16a34a);
+    color:#ecfdf5;
+    box-shadow:0 0 0 1px rgba(21,128,61,.4);
+  }
+  .timer.timerSession{
+    background:linear-gradient(135deg,#38bdf8,#2563eb);
+    color:#eff6ff;
+    box-shadow:0 0 0 1px rgba(37,99,235,.4);
   }
   .timerLabel{font-size:10px;opacity:.9;letter-spacing:.06em;text-transform:uppercase}
   .timerValue{font-size:16px;margin-top:2px}
-  .timer.timerCurrent{background:linear-gradient(135deg,#22c55e,#16a34a);color:#ecfdf5;box-shadow:0 0 0 1px rgba(21,128,61,.4)}
-  .timer.timerSession{background:linear-gradient(135deg,#38bdf8,#2563eb);color:#eff6ff;box-shadow:0 0 0 1px rgba(37,99,235,.4)}
+
+  .headerGang{
+    padding:9px 10px;
+    font-size:14px;
+    margin-bottom:4px;
+  }
 
   .catTabs{
-    margin-top:4px;padding:6px;border-radius:12px;border:1px solid var(--border);background:#ffffff;
-    display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:6px
+    margin-top:4px;
+    padding:6px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    background:#ffffff;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(90px,1fr));
+    gap:6px;
   }
   .catTabBtn{
-    width:100%;padding:6px 8px;border-radius:999px;border:1px solid var(--border);
-    background:#f1f5f9;font-size:12px;font-weight:900;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer
+    width:100%;
+    padding:6px 8px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:#f1f5f9;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    cursor:pointer;
   }
-  .catTabBtn.active{background:var(--warnbg);color:var(--warntext);border-color:var(--warn)}
+  .catTabBtn.active{
+    background:#ffedd5;
+    color:#7c2d12;
+    border-color:#fb923c;
+  }
+
   .list{display:flex;flex-direction:column;gap:8px;margin:6px 0 80px 0}
-  .subBlock{margin:10px 14px 12px 14px;padding:10px 12px 12px 12px;border-radius:14px;border:1px solid var(--border);background:#ffffff}
-  .subBlockTitle{margin:0 0 6px 2px;font-weight:900;font-size:16px;color:#111827}
-  .actGrid{margin-top:4px;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px}
-  .actCard{display:flex;align-items:center;gap:8px}
+
+  .subBlock{
+    margin:10px 14px 12px 14px;
+    padding:10px 12px 12px 12px;
+    border-radius:14px;
+    border:1px solid var(--border);
+    background:#ffffff;
+  }
+  .subBlockTitle{
+    margin:0 0 6px 2px;
+    font-weight:800;
+    font-size:18px;
+    color:#111827;
+  }
+
+  .actGrid{
+    margin-top:4px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+    gap:8px;
+  }
+  .actCard{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+
   .btnAct{
-    padding:12px 14px;border-radius:999px;border:none;background:#f9fafb;box-shadow:0 1px 3px rgba(15,23,42,.08);
-    font-weight:800;font-size:13px;text-align:left;line-height:1.3;cursor:pointer;flex:1;
-    transition:box-shadow .15s ease, transform .1s ease, background-color .15s ease
+    padding:12px 14px;
+    border-radius:999px;
+    border:none;
+    background:#f9fafb;
+    box-shadow:0 1px 3px rgba(15,23,42,.08);
+    font-weight:600;
+    font-size:13px;
+    text-align:left;
+    line-height:1.3;
+    cursor:pointer;
+    flex:1;
+    transition:box-shadow .15s ease, transform .1s ease, background-color .15s ease;
   }
-  .btnAct:active{transform:scale(0.98);box-shadow:0 0 0 rgba(0,0,0,0);background:#e5e7eb}
+  .btnAct.act--small{font-size:13px;padding:12px 14px}
+  .btnAct:active{
+    transform:scale(0.98);
+    box-shadow:0 0 0 rgba(0,0,0,0);
+    background:#e5e7eb;
+  }
+
   .badge{
-    padding:7px 6px;border-radius:10px;background:#eef2ff;text-align:center;font-weight:900;font-size:12px;min-width:70px
+    padding:7px 6px;
+    border-radius:10px;
+    background:#eef2ff;
+    text-align:center;
+    font-weight:800;
+    font-size:12px;
+    min-width:70px;
   }
-  .btnAct.activeAct{background:var(--warnbg)!important;color:var(--warntext)!important;border:2px solid var(--warn)!important;box-shadow:0 0 0 rgba(0,0,0,0)!important}
-  .badge.activeAct{background:var(--warntext)!important;color:#ffffff!important}
+
+  .btnAct.activeAct{
+    background:#ffedd5 !important;
+    color:#7c2d12 !important;
+    border:2px solid #fb923c !important;
+    box-shadow:0 0 0 rgba(0,0,0,0) !important;
+  }
+  .badge.activeAct{
+    background:#7c2d12 !important;
+    color:#ffffff !important;
+  }
+  #quickGangBtn.activeQuick{
+    background:#ffedd5 !important;
+    color:#7c2d12 !important;
+    border:2px solid #fb923c !important;
+  }
+
+  .btnRemove{
+    padding:6px 10px;
+    border-radius:999px;
+    border:none;
+    background:#fee2e2;
+    color:#b91c1c;
+    font-size:11px;
+    font-weight:600;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+
+  canvas{max-width:100%}
 
   .summaryToggleRow{display:flex;gap:8px;margin-bottom:8px}
   .chipToggle{
-    flex:1;padding:7px 8px;border-radius:999px;border:1px solid var(--border);
-    background:#f9fafb;font-size:13px;text-align:center;cursor:pointer;font-weight:800
+    flex:1;
+    padding:7px 8px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:#f9fafb;
+    font-size:13px;
+    text-align:center;
+    cursor:pointer;
   }
-  .chipToggle.active{background:#2563eb;color:#ffffff;border-color:#2563eb}
-  canvas{max-width:100%}
+  .chipToggle.active{
+    background:#2563eb;
+    color:#ffffff;
+    border-color:#2563eb;
+    font-weight:700;
+  }
 
-  .notice{
-    font-size:13px;color:#991b1b;background:#fee2e2;border:1px solid #fecaca;border-radius:12px;padding:10px 12px;margin:12px 14px
+  .addRow{
+    padding:11px 14px;
+    border-top:1px dashed var(--border);
+    display:flex;
+    gap:8px;
+    margin-top:8px;
   }
 </style>
 
@@ -131,18 +330,17 @@
       </div>
       <div class="row" style="margin-top:8px">
         <div class="col">
-          <button class="btn" id="startBtn" type="button">Starta analys</button>
+          <button class="btn" onclick="startSession()">Starta analys</button>
         </div>
       </div>
     </div>
 
     <div class="card">
-      <div class="sectionTitle" style="margin-top:0;">Kategorier (från Excel)</div>
+      <div class="sectionTitle" style="margin-top:0;">Välj aktiviteter som ska ingå</div>
       <div id="setupCatTabs" class="catTabs"></div>
     </div>
 
     <div id="setupActList" class="list"></div>
-    <div id="setupNotice" class="notice" hidden></div>
   </section>
 
   <!-- ANALYS -->
@@ -156,10 +354,8 @@
             <div id="sessionChip" class="chip" hidden></div>
           </div>
           <div class="headerActions">
-            <button class="iconBtn" id="saveBtn" type="button" title="Spara nu">💾</button>
-            <button class="iconBtn" id="undoBtn" type="button" title="Ångra senaste">↩️</button>
-            <button class="iconBtn" id="pauseBtn" type="button" title="Pausa/Fortsätt">⏸️</button>
-            <button class="btn secondary headerEnd" id="finishBtn" type="button">Avsluta</button>
+            <button class="iconBtn" onclick="downloadExcel()" title="Spara nu">💾</button>
+            <button class="btn secondary headerEnd" onclick="finishSession()">Avsluta</button>
           </div>
         </div>
 
@@ -177,6 +373,8 @@
           </div>
         </div>
 
+        <button id="quickGangBtn" class="btn ghost headerGang" onclick="quickGang()">Gång</button>
+
         <div id="catTabs" class="catTabs"></div>
       </div>
     </div>
@@ -188,41 +386,25 @@
   <section id="summary" hidden>
     <div class="card">
       <div class="row">
-        <div class="col"><button class="btn ghost" id="exportBtn" type="button">Exportera till Excel</button></div>
-        <div class="col"><button class="btn" id="newBtn" type="button">Ny analys</button></div>
+        <div class="col"><button class="btn ghost" onclick="downloadExcel()">Exportera till Excel</button></div>
+        <div class="col"><button class="btn" onclick="confirmNewAnalysis()">Ny analys</button></div>
       </div>
     </div>
-
     <div class="card" id="summaryTotals"></div>
-
     <div class="card">
       <div class="summaryToggleRow">
-        <button id="toggleCat" class="chipToggle active" type="button">Visa per huvudkategori</button>
-        <button id="toggleSub" class="chipToggle" type="button">Visa per underkategori</button>
+        <button id="toggleCat" class="chipToggle active" onclick="setChartMode('category')">Visa per huvudkategori</button>
+        <button id="toggleSub" class="chipToggle" onclick="setChartMode('subcategory')">Visa per underkategori</button>
       </div>
       <canvas id="pie"></canvas>
     </div>
-
     <div class="card"><div id="totals" class="list"></div></div>
   </section>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-/**
- * NY VERSION (en fil):
- * - Hämtar "frekvensanalys_kategorier.xlsx" (GitHub Pages)
- * - Stödjer två kolumner:
- *    Kategori | Underkategori
- *   (tolerant: andra kolumnen kan också heta "Aktivitet")
- * - Om en tredje kolumn "Aktivitet" finns stöds även:
- *    Kategori | Underkategori | Aktivitet
- * - Inga inline onclick (stabilare)
- * - Uppdaterar UI med setInterval (snällare prestanda)
- */
-
-const EXCEL_FILE = "frekvensanalys_kategorier.xlsx";
-
+// Färgkarta per kategori
 const categoryColors = {
   "Logistik": "#fff3e8",
   "Planering": "#e8f0ff",
@@ -231,449 +413,442 @@ const categoryColors = {
   "Övrigt": "#f5e0ff"
 };
 
+// ===== DATA =====
 const model = {
   header:{leader:"",flow:"",date:""},
   tree:[],
-  actMeta:{},
   totals:{},
-  history:[],
-  selectedCatIndex:0,
+  actMeta:{},
   sessionStart:0,
+  sessionRAF:0,
   active:null,
   activeStart:0,
-  paused:false,
-  pausedMs:0,
-  pauseStart:0,
-  tickHandle:null,
+  history:[],
   chartMode:"category",
-  chartInstance:null
+  chartInstance:null,
+  selectedCatIndex:0,
+  hiddenActs:new Set()
 };
 
-// ---------- Excel -> tree ----------
+// ===== LÄS STRUKTUR FRÅN EXCEL =====
 async function loadStructureFromExcel(){
-  const res = await fetch(EXCEL_FILE, { cache:"no-store" });
-  if(!res.ok) throw new Error("Kunde inte hämta "+EXCEL_FILE);
-
+  const res = await fetch("structure.xlsx");
+  if(!res.ok){
+    throw new Error("Kunde inte hämta structure.xlsx");
+  }
   const buf = await res.arrayBuffer();
-  const wb = XLSX.read(buf, { type:"array" });
+
+  const wb = XLSX.read(buf, { type: "array" });
   const sheetName = wb.SheetNames[0];
   const sheet = wb.Sheets[sheetName];
-  const rows = XLSX.utils.sheet_to_json(sheet, { header:1 });
 
-  const header = (rows[0] || []).map(h => (h||"").toString().trim());
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+  const header = rows[0] || [];
   const idxCat = header.indexOf("Kategori");
   const idxSub = header.indexOf("Underkategori");
   const idxAct = header.indexOf("Aktivitet");
 
-  if(idxCat === -1) throw new Error("Filen måste ha rubriken: Kategori");
+  if(idxCat === -1 || idxSub === -1 || idxAct === -1){
+    throw new Error("Filen måste ha rubrikerna: Kategori, Underkategori, Aktivitet");
+  }
 
   const treeMap = new Map();
-  const ensureCat = (name) => {
-    if(!treeMap.has(name)){
-      treeMap.set(name, {
-        name,
-        color: categoryColors[name] || "#ffffff",
+
+  for(let i=1; i<rows.length; i++){
+    const row = rows[i];
+    if(!row) continue;
+
+    const catName = (row[idxCat] || "").toString().trim();
+    const subName = (row[idxSub] || "").toString().trim();
+    const actName = (row[idxAct] || "").toString().trim();
+
+    if(!catName || !subName || !actName) continue;
+
+    if(!treeMap.has(catName)){
+      treeMap.set(catName,{
+        name: catName,
+        color: categoryColors[catName] || "#ffffff",
         subs: [],
-        isOther: name === "Övrigt"
+        isOther: catName === "Övrigt"
       });
     }
-    return treeMap.get(name);
-  };
-  const ensureSub = (cat, subName) => {
+    const cat = treeMap.get(catName);
+
     let sub = cat.subs.find(s => s.name === subName);
     if(!sub){
       sub = { name: subName, acts: [] };
       cat.subs.push(sub);
     }
-    return sub;
-  };
 
-  // FALL A: 3 kolumner (Kategori, Underkategori, Aktivitet)
-  if(idxSub !== -1 && idxAct !== -1){
-    for(let i=1;i<rows.length;i++){
-      const r = rows[i]; if(!r) continue;
-      const catName = (r[idxCat]||"").toString().trim();
-      const subName = (r[idxSub]||"").toString().trim();
-      const actName = (r[idxAct]||"").toString().trim();
-      if(!catName || !subName || !actName) continue;
-
-      const cat = ensureCat(catName);
-      const sub = ensureSub(cat, subName);
-      if(!sub.acts.includes(actName)) sub.acts.push(actName);
+    if(!sub.acts.includes(actName)){
+      sub.acts.push(actName);
     }
-    model.tree = Array.from(treeMap.values());
-    return;
-  }
-
-  // FALL B: 2 kolumner (Kategori + Underkategori) eller (Kategori + Aktivitet)
-  const idxSecond = (idxSub !== -1) ? idxSub : idxAct;
-  if(idxSecond === -1) throw new Error("Filen måste ha: Kategori + Underkategori (eller Aktivitet)");
-
-  for(let i=1;i<rows.length;i++){
-    const r = rows[i]; if(!r) continue;
-    const catName = (r[idxCat]||"").toString().trim();
-    const second = (r[idxSecond]||"").toString().trim();
-    if(!catName || !second) continue;
-
-    // I 2-kolumnsfallet behandlar vi "second" som både:
-    // - underkategori (grupp-rubrik)
-    // - aktivitet (knappen man klickar på)
-    const cat = ensureCat(catName);
-    const sub = ensureSub(cat, second);
-    if(!sub.acts.includes(second)) sub.acts.push(second);
   }
 
   model.tree = Array.from(treeMap.values());
 }
 
-// ---------- Build meta & totals ----------
-function buildActMetaAndTotals(){
-  model.actMeta = {};
-  model.totals = {};
-  model.tree.forEach(c=>{
-    c.subs.forEach(s=>{
-      s.acts.forEach(a=>{
-        model.actMeta[a] = { catName:c.name, subName:s.name };
-        model.totals[a] = 0;
-      });
-    });
-  });
-}
-
-// ---------- UI render ----------
+// ===== SETUP-VY =====
 function renderSetupCategoryTabs(){
-  const host = document.getElementById("setupCatTabs");
-  host.innerHTML = "";
-  model.tree.forEach((cat, idx)=>{
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "catTabBtn" + (idx===model.selectedCatIndex ? " active" : "");
-    btn.textContent = cat.name.toUpperCase();
-    btn.addEventListener("click", ()=>{
-      model.selectedCatIndex = idx;
-      renderSetupCategoryTabs();
-      renderSetupActList();
-    });
+  const host = document.getElementById('setupCatTabs');
+  if(!host) return;
+  host.innerHTML='';
+  if(!model.tree.length){
+    host.innerHTML = "<div style='font-size:13px;color:#b91c1c;'>Ingen struktur inläst. Kontrollera structure.xlsx.</div>";
+    return;
+  }
+  model.tree.forEach((cat,idx)=>{
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='catTabBtn'+(idx===model.selectedCatIndex?' active':'');
+    btn.textContent=cat.name.toUpperCase();
+    btn.onclick=()=>{ model.selectedCatIndex=idx; renderSetupCategoryTabs(); renderSetupActList(); };
     host.appendChild(btn);
   });
 }
 
 function renderSetupActList(){
-  const host = document.getElementById("setupActList");
-  host.innerHTML = "";
+  const host=document.getElementById('setupActList');
+  if(!host) return;
+  host.innerHTML='';
 
-  const cat = model.tree[model.selectedCatIndex] || model.tree[0];
+  const catIndex = model.selectedCatIndex;
+  const cat = model.tree[catIndex] || model.tree[0];
   if(!cat) return;
 
-  cat.subs.forEach(sub=>{
-    const block = document.createElement("div");
-    block.className = "subBlock";
+  cat.subs.forEach((sub, si)=>{
+    const subBlock=document.createElement('div');
+    subBlock.className='subBlock';
 
-    const title = document.createElement("div");
-    title.className = "subBlockTitle";
-    title.textContent = sub.name;
-    block.appendChild(title);
+    const title=document.createElement('div');
+    title.className='subBlockTitle';
+    title.textContent=sub.name;
+    subBlock.appendChild(title);
 
-    const grid = document.createElement("div");
-    grid.className = "actGrid";
+    const grid=document.createElement('div');
+    grid.className='actGrid';
 
-    sub.acts.forEach(act=>{
-      const card = document.createElement("div");
-      card.className = "actCard";
+    const visibleActs = sub.acts.filter(a => !model.hiddenActs.has(a));
 
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "btnAct";
-      b.textContent = act;
-      b.disabled = true;
+    visibleActs.forEach(act=>{
+      const card=document.createElement('div');
+      card.className='actCard';
 
-      const badge = document.createElement("div");
-      badge.className = "badge";
-      badge.textContent = "OK";
+      const safeAct = act.replaceAll('"',"&quot;");
+      card.innerHTML =
+        `<button class="btnAct act--small" type="button">${act}</button>`+
+        `<button class="btnRemove" type="button" onclick="hideActivity('${safeAct}')">Ta bort</button>`;
 
-      card.appendChild(b);
-      card.appendChild(badge);
       grid.appendChild(card);
     });
 
-    block.appendChild(grid);
-    host.appendChild(block);
+    subBlock.appendChild(grid);
+
+    // Inmatning för ny aktivitet i denna underkategori (endast på setup-sidan)
+    const inputId = `setupNewAct_${catIndex}_${si}`;
+    const add=document.createElement('div');
+    add.className='addRow';
+    add.innerHTML =
+      `<input id="${inputId}" placeholder="Ny aktivitet i ${sub.name}">`+
+      `<button class="btn small" style="width:auto" type="button" onclick="addSetupActivity(${catIndex},${si}, '${inputId}')">+ Lägg till</button>`;
+    subBlock.appendChild(add);
+
+    host.appendChild(subBlock);
   });
 }
 
-function renderCategoryTabs(){
-  const host = document.getElementById("catTabs");
-  host.innerHTML = "";
-  model.tree.forEach((cat, idx)=>{
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "catTabBtn" + (idx===model.selectedCatIndex ? " active" : "");
-    btn.textContent = cat.name.toUpperCase();
-    btn.addEventListener("click", ()=>{
-      model.selectedCatIndex = idx;
-      renderCategoryTabs();
-      renderActList();
-      highlightActive();
-    });
-    host.appendChild(btn);
-  });
+function hideActivity(name){
+  if(!name) return;
+  model.hiddenActs.add(name);
+  renderSetupActList();
+  if(document.getElementById('analysis') && !document.getElementById('analysis').hidden){
+    renderCategoryTabs();
+    renderActList();
+  }
 }
 
-function renderActList(){
-  const host = document.getElementById("actList");
-  host.innerHTML = "";
+function addSetupActivity(ci, si, inputId){
+  const input = document.getElementById(inputId);
+  if(!input) return;
+  const name = input.value.trim();
+  if(!name) return;
 
-  const cat = model.tree[model.selectedCatIndex] || model.tree[0];
+  const cat = model.tree[ci];
   if(!cat) return;
+  const sub = cat.subs[si];
+  if(!sub) return;
 
-  cat.subs.forEach(sub=>{
-    const block = document.createElement("div");
-    block.className = "subBlock";
+  if(!sub.acts.includes(name)){
+    sub.acts.push(name);
+  }
 
-    const title = document.createElement("div");
-    title.className = "subBlockTitle";
-    title.textContent = sub.name;
-    block.appendChild(title);
+  // säkerställ att den inte är dold
+  model.hiddenActs.delete(name);
 
-    const grid = document.createElement("div");
-    grid.className = "actGrid";
+  input.value = '';
+  renderSetupActList();
 
-    sub.acts.forEach(act=>{
-      const card = document.createElement("div");
-      card.className = "actCard";
-
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "btnAct";
-      b.textContent = act;
-      b.dataset.act = act;
-      b.id = "btn_"+hash(act);
-      b.addEventListener("click", ()=>selectActivity(act));
-
-      const badge = document.createElement("div");
-      badge.className = "badge";
-      badge.id = "sum_"+hash(act);
-      badge.textContent = "00:00:00";
-
-      card.appendChild(b);
-      card.appendChild(badge);
-      grid.appendChild(card);
-    });
-
-    block.appendChild(grid);
-    host.appendChild(block);
-  });
-
-  highlightActive();
+  if(document.getElementById('analysis') && !document.getElementById('analysis').hidden){
+    renderCategoryTabs();
+    renderActList();
+  }
 }
 
-// ---------- Session ----------
+// ===== ANALYS =====
+function buildActMeta(){
+  model.actMeta = {};
+  model.tree.forEach(c=>{
+    c.subs.forEach(s=>{
+      s.acts.forEach(a=>{
+        model.actMeta[a] = {catName:c.name, subName:s.name};
+      });
+    });
+  });
+}
+
 function startSession(){
-  model.header.leader = document.getElementById("leader").value.trim();
-  model.header.flow = document.getElementById("flow").value.trim();
-  model.header.date = document.getElementById("date").value;
+  model.header.leader=document.getElementById('leader').value.trim();
+  model.header.flow=document.getElementById('flow').value.trim();
+  model.header.date=document.getElementById('date').value;
 
-  buildActMetaAndTotals();
+  buildActMeta();
 
-  model.history = [];
-  model.selectedCatIndex = 0;
+  model.totals={};
+  model.tree.forEach(c=>c.subs.forEach(s=>s.acts.forEach(a=>{
+    if(!model.hiddenActs.has(a)){
+      model.totals[a]=0;
+    }
+  })));
 
-  model.sessionStart = performance.now();
-  model.active = null;
-  model.activeStart = 0;
-  model.paused = false;
-  model.pausedMs = 0;
-  model.pauseStart = 0;
-
-  const chip = document.getElementById("sessionChip");
-  chip.hidden = false;
-  const d = model.header.date ? new Date(model.header.date).toLocaleDateString("sv-SE") : new Date().toLocaleDateString("sv-SE");
-  chip.textContent = `${model.header.leader||"Lagledare"} · ${model.header.flow||"Flöde"} · ${d}`;
-
-  document.getElementById("setup").hidden = true;
-  document.getElementById("analysis").hidden = false;
+  model.sessionStart=performance.now();
+  model.history=[];
+  model.active=null;
+  model.activeStart=0;
+  model.selectedCatIndex=0;
 
   renderCategoryTabs();
   renderActList();
 
-  setLive(0);
-  setSession(0);
+  document.getElementById('setup').hidden=true;
+  document.getElementById('analysis').hidden=false;
 
-  if(model.tickHandle) clearInterval(model.tickHandle);
-  model.tickHandle = setInterval(tick, 250);
-}
+  const chip=document.getElementById('sessionChip');
+  chip.hidden=false;
+  chip.textContent=`${model.header.leader||'Lagledare'} · ${model.header.flow||'Flöde'} · ${new Date().toLocaleDateString('sv-SE')}`;
 
-function selectActivity(name){
-  if(model.paused){
-    // Om pausad: fortsätt först, sedan välj
-    togglePause(true);
+  const quick = document.getElementById('quickGangBtn');
+  if(quick){
+    if(model.hiddenActs.has("Gång")){
+      quick.style.display = "none";
+    }else{
+      quick.style.display = "block";
+    }
   }
 
+  tick();
+}
+
+function renderCategoryTabs(){
+  const host=document.getElementById('catTabs');
+  if(!host) return;
+  host.innerHTML='';
+  model.tree.forEach((cat,idx)=>{
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='catTabBtn'+(idx===model.selectedCatIndex?' active':'');
+    btn.textContent=cat.name.toUpperCase();
+    btn.onclick=()=>selectCategory(idx);
+    host.appendChild(btn);
+  });
+}
+
+function selectCategory(idx){
+  model.selectedCatIndex=idx;
+  renderCategoryTabs();
+  renderActList();
+  highlightActiveRow();
+}
+
+function renderActList(){
+  const host=document.getElementById('actList');
+  if(!host) return;
+  host.innerHTML='';
+
+  const cat = model.tree[model.selectedCatIndex] || model.tree[0];
+  if(!cat) return;
+
+  cat.subs.forEach((sub,subIndex)=>{
+    if(!sub.acts || !sub.acts.length) return;
+
+    const subBlock=document.createElement('div');
+    subBlock.className='subBlock';
+
+    const title=document.createElement('div');
+    title.className='subBlockTitle';
+    title.textContent=sub.name;
+    subBlock.appendChild(title);
+
+    const grid=document.createElement('div');
+    grid.className='actGrid';
+
+    sub.acts.forEach(act=>{
+      if(model.hiddenActs.has(act)) return;
+
+      const card=document.createElement('div');
+      card.className='actCard';
+
+      const safeAct = act.replaceAll('"',"&quot;");
+      card.innerHTML =
+        `<button class="btnAct act--small" id="btn_${hash(act)}" data-act="${safeAct}" onclick='selectActivity("${safeAct}")'>${act}</button>`+
+        `<div class="badge" id="sum_${hash(act)}">00:00:00</div>`;
+
+      grid.appendChild(card);
+    });
+
+    subBlock.appendChild(grid);
+
+    if(cat.isOther && subIndex === cat.subs.length-1){
+      const add=document.createElement('div');
+      add.className='addRow';
+      add.style.borderTopStyle='solid';
+      add.innerHTML =
+        `<input id="otherNewAct" placeholder="Ny aktivitet i Övrigt">`+
+        `<button class="btn small" style="width:auto" onclick="addOtherActivity()">+ Lägg till</button>`;
+      subBlock.appendChild(add);
+    }
+
+    host.appendChild(subBlock);
+  });
+
+  highlightActiveRow();
+}
+
+function addOtherActivity(){
+  const input=document.getElementById('otherNewAct');
+  if(!input) return;
+  const name=input.value.trim();
+  if(!name) return;
+
+  const otherIdx = model.tree.findIndex(c=>c.isOther);
+  if(otherIdx === -1) return;
+  const otherCat = model.tree[otherIdx];
+  if(!otherCat.subs.length) otherCat.subs.push({name:"Övrigt",acts:[]});
+  otherCat.subs[0].acts.push(name);
+
+  model.totals[name]=0;
+  model.actMeta[name] = {catName:otherCat.name, subName:otherCat.subs[0].name};
+
+  input.value='';
+  renderActList();
+}
+
+function quickGang(){ selectActivity("Gång"); }
+
+function selectActivity(name){
   const now = performance.now();
 
-  // stäng föregående segment
   if(model.active){
-    const dur = now - model.activeStart;
-    if(dur > 0){
-      model.totals[model.active] = (model.totals[model.active]||0) + dur;
-      model.history.push({ act:model.active, start:model.activeStart, end:now });
+    const durMs = now - model.activeStart;
+    if(durMs > 0){
+      model.totals[model.active] = (model.totals[model.active] || 0) + durMs;
+      model.history.push({act:model.active, start:model.activeStart, end:now});
     }
   }
 
   model.active = name;
   model.activeStart = now;
-  document.getElementById("currentAct").textContent = name;
-
+  document.getElementById('currentAct').textContent = name;
   setLive(0);
-  highlightActive();
-}
-
-function togglePause(forceResume=false){
-  const now = performance.now();
-
-  if(model.paused || forceResume){
-    // RESUME
-    if(model.paused){
-      model.pausedMs += (now - model.pauseStart);
-      model.paused = false;
-      model.pauseStart = 0;
-      // flytta activeStart framåt så aktiviteten inte “räknar paus”
-      if(model.active) model.activeStart = now;
-    }
-    updatePauseIcon();
-    return;
-  }
-
-  // PAUSE: stäng aktivt segment fram till nu
-  if(model.active){
-    const dur = now - model.activeStart;
-    if(dur > 0){
-      model.totals[model.active] = (model.totals[model.active]||0) + dur;
-      model.history.push({ act:model.active, start:model.activeStart, end:now });
-    }
-    model.active = null;
-    document.getElementById("currentAct").textContent = "Pausad";
-  }
-
-  model.paused = true;
-  model.pauseStart = now;
-  updatePauseIcon();
-  highlightActive();
-  setLive(0);
-}
-
-function updatePauseIcon(){
-  const btn = document.getElementById("pauseBtn");
-  btn.textContent = model.paused ? "▶️" : "⏸️";
-  btn.title = model.paused ? "Fortsätt" : "Pausa";
-}
-
-function undoLast(){
-  if(!model.history.length) return;
-
-  // om aktiv: pausa först och lås senaste segment i history via pause
-  if(model.active){
-    togglePause(false);
-  }
-
-  const last = model.history.pop();
-  if(!last) return;
-
-  const ms = Math.max(0, last.end - last.start);
-  model.totals[last.act] = Math.max(0, (model.totals[last.act]||0) - ms);
-
-  // UI uppdateras vid nästa tick
+  highlightActiveRow();
 }
 
 function tick(){
   const now = performance.now();
-  const elapsed = now - model.sessionStart - model.pausedMs - (model.paused ? (now - model.pauseStart) : 0);
-  setSession(elapsed);
+
+  const totalMs = now - model.sessionStart;
+  setSession(totalMs);
 
   if(model.active){
-    const cur = now - model.activeStart;
-    setLive(cur);
-  }else{
-    setLive(0);
+    const curMs = now - model.activeStart;
+    setLive(curMs);
   }
 
-  // preview: totals + active pågående
-  const preview = { ...model.totals };
+  const preview = {...model.totals};
   if(model.active){
-    preview[model.active] = (preview[model.active]||0) + (now - model.activeStart);
+    preview[model.active] = (preview[model.active] || 0) + (now - model.activeStart);
   }
 
-  // Uppdatera bara synliga badges i aktuell kategori
-  const cat = model.tree[model.selectedCatIndex] || model.tree[0];
-  if(!cat) return;
-  cat.subs.forEach(s=>{
-    s.acts.forEach(a=>{
-      const el = document.getElementById("sum_"+hash(a));
-      if(el) el.textContent = fmt(preview[a]||0);
-    });
-  });
+  for(const [act,ms] of Object.entries(preview)){
+    const el=document.getElementById('sum_'+hash(act));
+    if(el){
+      el.textContent = fmt(ms);
+    }
+  }
+
+  model.sessionRAF = requestAnimationFrame(tick);
 }
 
 function finishSession(){
-  if(!confirm("Vill du avsluta analysen? Detta stoppar timern och låser resultatet.")) return;
+  if(!confirm("Vill du avsluta analysen? Detta stoppar timern och låser resultatet.")){
+    return;
+  }
 
-  if(model.tickHandle) clearInterval(model.tickHandle);
-  model.tickHandle = null;
-
-  // stäng pågående aktivitet om någon (om inte pausad)
   const now = performance.now();
   if(model.active){
-    const dur = now - model.activeStart;
-    if(dur>0){
-      model.totals[model.active] = (model.totals[model.active]||0) + dur;
-      model.history.push({ act:model.active, start:model.activeStart, end:now });
+    const durMs = now - model.activeStart;
+    if(durMs>0){
+      model.totals[model.active] = (model.totals[model.active] || 0) + durMs;
+      model.history.push({act:model.active, start:model.activeStart, end:now});
     }
     model.active = null;
   }
-
-  document.getElementById("analysis").hidden = true;
-  document.getElementById("summary").hidden = false;
-
+  cancelAnimationFrame(model.sessionRAF);
+  document.getElementById('analysis').hidden=true;
+  document.getElementById('summary').hidden=false;
   renderSummary();
 }
 
-// ---------- Summary ----------
+// ===== SUMMARY & EXPORT =====
 function aggregateByCategory(){
-  const res = {};
-  for(const [act, ms] of Object.entries(model.totals)){
-    const meta = model.actMeta[act]; if(!meta) continue;
-    res[meta.catName] = (res[meta.catName]||0) + ms;
+  const res={};
+  for(const [act,ms] of Object.entries(model.totals)){
+    const meta = model.actMeta[act];
+    if(!meta) continue;
+    const key = meta.catName;
+    res[key] = (res[key] || 0) + ms;
   }
   return res;
 }
 function aggregateBySubcategory(){
-  const res = {};
-  for(const [act, ms] of Object.entries(model.totals)){
-    const meta = model.actMeta[act]; if(!meta) continue;
+  const res={};
+  for(const [act,ms] of Object.entries(model.totals)){
+    const meta = model.actMeta[act];
+    if(!meta) continue;
     const key = `${meta.catName} – ${meta.subName}`;
-    res[key] = (res[key]||0) + ms;
+    res[key] = (res[key] || 0) + ms;
   }
   return res;
 }
 
 function setChartMode(mode){
   model.chartMode = mode;
-  document.getElementById("toggleCat").classList.toggle("active", mode==="category");
-  document.getElementById("toggleSub").classList.toggle("active", mode==="subcategory");
+  document.getElementById('toggleCat').classList.toggle('active',mode==="category");
+  document.getElementById('toggleSub').classList.toggle('active',mode==="subcategory");
   renderChart();
 }
 
 function renderChart(){
-  const dataObj = model.chartMode==="category" ? aggregateByCategory() : aggregateBySubcategory();
+  const dataObj = model.chartMode === "category" ? aggregateByCategory() : aggregateBySubcategory();
   const labels = Object.keys(dataObj);
-  const data = labels.map(l => Math.round((dataObj[l]||0)/1000));
+  const data = labels.map(l=>Math.round(dataObj[l]/1000));
 
-  const ctx = document.getElementById("pie").getContext("2d");
-  if(model.chartInstance) model.chartInstance.destroy();
+  const ctx = document.getElementById('pie').getContext('2d');
+  if(model.chartInstance){ model.chartInstance.destroy(); }
   model.chartInstance = new Chart(ctx,{
-    type:"pie",
-    data:{ labels, datasets:[{ data }] },
-    options:{ plugins:{ legend:{ position:"bottom" } } }
+    type:'pie',
+    data:{labels,datasets:[{data}]},
+    options:{plugins:{legend:{position:'bottom'}}}
   });
 }
 
@@ -682,33 +857,31 @@ function renderSummary(){
 
   const summaryTotals = document.getElementById("summaryTotals");
 
-  const totalActivitiesMs = Object.values(model.totals).reduce((a,b)=>a+b,0);
-  // total analys = faktisk tid (session) baserat på timer
-  // här använder vi senaste tick-beräknade sessionTimer som “sanning”:
-  const sessionText = document.getElementById("sessionTimer").textContent;
+  let totalAnalysisMs = 0;
+  if(model.history.length>0){
+    totalAnalysisMs = model.history[model.history.length-1].end - model.sessionStart;
+  }
+
+  const totalActivitiesMs =
+    Object.values(model.totals).reduce((a,b)=>a+b,0);
 
   summaryTotals.innerHTML = `
-    <div style="font-weight:900;margin-bottom:6px;">Totaler</div>
-    <div style="margin-bottom:2px;">Total analys: <b>${sessionText}</b></div>
+    <div style="font-weight:700;margin-bottom:6px;">Totaler</div>
+    <div style="margin-bottom:2px;">Total analys: <b>${fmt(totalAnalysisMs)}</b></div>
     <div>Total aktiviteter: <b>${fmt(totalActivitiesMs)}</b></div>
   `;
 
-  const list = document.getElementById("totals");
-  const items = Object.entries(model.totals)
-    .filter(([,ms]) => ms>0)
-    .sort((a,b)=>b[1]-a[1]);
-
-  list.innerHTML = items.map(([name,ms])=>{
-    return `<div class="row" style="align-items:center;margin-bottom:4px;">
-      <div style="flex:1;font-size:14px;font-weight:800;">${escapeHtml(name)}</div>
-      <div class="badge">${fmt(ms)}</div>
-    </div>`;
-  }).join("");
+  const list=document.getElementById('totals');
+  const labels=Object.keys(model.totals);
+  list.innerHTML=labels
+    .filter(l=>model.totals[l]>0)
+    .map(l=>`<div class='row' style="align-items:center;margin-bottom:4px;"><div style="flex:1;font-size:14px;font-weight:600;">${l}</div><div class='badge'>${fmt(model.totals[l])}</div></div>`)
+    .join('');
 }
 
-// ---------- Export ----------
 function downloadExcel(){
   const wb = XLSX.utils.book_new();
+
   const base = Date.now() - (performance.now() - model.sessionStart);
 
   const rows = [];
@@ -729,21 +902,28 @@ function downloadExcel(){
 
   rows.push([""]);
   rows.push(["SUMMA"]);
-  Object.entries(model.totals).forEach(([k,vMs])=>{
+  Object.entries(model.totals).forEach(([k, vMs])=>{
     rows.push([k, "", "", Math.round(vMs/1000)]);
   });
 
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), "Detaljer");
+  const ws1 = XLSX.utils.aoa_to_sheet(rows);
+  XLSX.utils.book_append_sheet(wb, ws1, "Detaljer");
 
   const catAgg = aggregateByCategory();
   const rows2 = [["Kategori","Sekunder"]];
-  Object.entries(catAgg).forEach(([k,vMs])=>rows2.push([k, Math.round(vMs/1000)]));
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows2), "Kategorier");
+  Object.entries(catAgg).forEach(([k,vMs])=>{
+    rows2.push([k, Math.round(vMs/1000)]);
+  });
+  const ws2 = XLSX.utils.aoa_to_sheet(rows2);
+  XLSX.utils.book_append_sheet(wb, ws2, "Kategorier");
 
   const subAgg = aggregateBySubcategory();
   const rows3 = [["Underkategori","Sekunder"]];
-  Object.entries(subAgg).forEach(([k,vMs])=>rows3.push([k, Math.round(vMs/1000)]));
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows3), "Underkategorier");
+  Object.entries(subAgg).forEach(([k,vMs])=>{
+    rows3.push([k, Math.round(vMs/1000)]);
+  });
+  const ws3 = XLSX.utils.aoa_to_sheet(rows3);
+  XLSX.utils.book_append_sheet(wb, ws3, "Underkategorier");
 
   XLSX.writeFile(wb, "frekvensanalys.xlsx");
 }
@@ -754,47 +934,51 @@ function confirmNewAnalysis(){
   }
 }
 
-// ---------- Helpers ----------
+// ===== HELPERS =====
 function hash(s){
   let h=0;
-  for(let i=0;i<s.length;i++){ h=((h<<5)-h)+s.charCodeAt(i); h|=0; }
-  return "h"+Math.abs(h);
+  for(let i=0;i<s.length;i++){
+    h=((h<<5)-h)+s.charCodeAt(i);
+    h|=0;
+  }
+  return 'h'+Math.abs(h);
 }
 function fmt(ms){
   const sec=Math.max(0,Math.round(ms/1000));
-  const h=(""+Math.floor(sec/3600)).padStart(2,"0");
-  const m=(""+Math.floor((sec%3600)/60)).padStart(2,"0");
-  const s=(""+(sec%60)).padStart(2,"0");
+  const h=(''+Math.floor(sec/3600)).padStart(2,'0');
+  const m=(''+Math.floor((sec%3600)/60)).padStart(2,'0');
+  const s=(''+(sec%60)).padStart(2,'0');
   return `${h}:${m}:${s}`;
 }
-function setLive(ms){ document.getElementById("liveTimer").textContent = fmt(ms); }
-function setSession(ms){ document.getElementById("sessionTimer").textContent = fmt(ms); }
+function setLive(ms){
+  document.getElementById('liveTimer').textContent=fmt(ms);
+}
+function setSession(ms){
+  document.getElementById('sessionTimer').textContent=fmt(ms);
+}
 
-function highlightActive(){
-  document.querySelectorAll(".btnAct").forEach(b=>b.classList.remove("activeAct"));
-  document.querySelectorAll(".badge").forEach(b=>b.classList.remove("activeAct"));
+function highlightActiveRow(){
+  document.querySelectorAll('.btnAct').forEach(b=>b.classList.remove('activeAct'));
+  document.querySelectorAll('.badge').forEach(b=>b.classList.remove('activeAct'));
+  const quick = document.getElementById('quickGangBtn');
+  if(quick) quick.classList.remove('activeQuick');
+
   if(!model.active) return;
 
   const id = hash(model.active);
-  const btn = document.getElementById("btn_"+id);
-  const badge = document.getElementById("sum_"+id);
-  if(btn) btn.classList.add("activeAct");
-  if(badge) badge.classList.add("activeAct");
+  const btn=document.getElementById('btn_'+id);
+  const badge=document.getElementById('sum_'+id);
+  if(btn) btn.classList.add('activeAct');
+  if(badge) badge.classList.add('activeAct');
+
+  if(model.active === "Gång" && quick){
+    quick.classList.add('activeQuick');
+  }
 }
 
-function escapeHtml(s){
-  return (s||"").toString()
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#39;");
-}
-
-// ---------- Safety: leaving page ----------
-window.addEventListener("beforeunload", (e)=>{
-  const analysisVisible = document.getElementById("analysis") && !document.getElementById("analysis").hidden;
-  if(analysisVisible){
+window.addEventListener("beforeunload", function (e) {
+  const analysisVisible = document.getElementById('analysis') && !document.getElementById('analysis').hidden;
+  if (analysisVisible) {
     const msg = "Du håller på att avsluta analysen. All registrerad tid kan förloras om du lämnar sidan.";
     e.preventDefault();
     e.returnValue = msg;
@@ -802,34 +986,18 @@ window.addEventListener("beforeunload", (e)=>{
   }
 });
 
-// ---------- Wire UI ----------
-document.getElementById("startBtn").addEventListener("click", startSession);
-document.getElementById("finishBtn").addEventListener("click", finishSession);
-document.getElementById("saveBtn").addEventListener("click", downloadExcel);
-document.getElementById("exportBtn").addEventListener("click", downloadExcel);
-document.getElementById("newBtn").addEventListener("click", confirmNewAnalysis);
-document.getElementById("pauseBtn").addEventListener("click", ()=>togglePause(false));
-document.getElementById("undoBtn").addEventListener("click", undoLast);
-document.getElementById("toggleCat").addEventListener("click", ()=>setChartMode("category"));
-document.getElementById("toggleSub").addEventListener("click", ()=>setChartMode("subcategory"));
-
-// ---------- Boot ----------
-(async function boot(){
-  try{
-    await loadStructureFromExcel();
-    if(!model.tree.length) throw new Error("Excel lästes men gav ingen struktur (inga rader).");
-    model.selectedCatIndex = 0;
+loadStructureFromExcel()
+  .then(() => {
     renderSetupCategoryTabs();
     renderSetupActList();
-  }catch(err){
+  })
+  .catch(err => {
     console.error(err);
-    const n = document.getElementById("setupNotice");
-    n.hidden = false;
-    n.textContent =
-      "Kunde inte läsa "+EXCEL_FILE+
-      ". Kontrollera att filen ligger i samma GitHub-repo/mapp som index.html och att rubrikerna är 'Kategori' + 'Underkategori' (eller 'Aktivitet').";
-  }
-})();
+    alert("Kunde inte läsa structure.xlsx. Om du kör filen direkt från datorn (file://) är det normalt – läsning via fetch blockeras. Ladda upp till GitHub eller kör via en webserver för att prova Excelfilen.");
+    renderSetupCategoryTabs();
+    renderSetupActList();
+  });
 </script>
 </body>
 </html>
+
