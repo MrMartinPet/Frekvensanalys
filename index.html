@@ -432,9 +432,9 @@ const model = {
 
 // ===== LÄS STRUKTUR FRÅN EXCEL =====
 async function loadStructureFromExcel(){
-  const res = await fetch("structure.xlsx");
+  const res = await fetch("structure1.xlsx");
   if(!res.ok){
-    throw new Error("Kunde inte hämta structure.xlsx");
+    throw new Error("Kunde inte hämta structure1.xlsx");
   }
   const buf = await res.arrayBuffer();
 
@@ -495,7 +495,7 @@ function renderSetupCategoryTabs(){
   if(!host) return;
   host.innerHTML='';
   if(!model.tree.length){
-    host.innerHTML = "<div style='font-size:13px;color:#b91c1c;'>Ingen struktur inläst. Kontrollera structure.xlsx.</div>";
+    host.innerHTML = "<div style='font-size:13px;color:#b91c1c;'>Ingen struktur inläst. Kontrollera structure1.xlsx.</div>";
     return;
   }
   model.tree.forEach((cat,idx)=>{
@@ -993,11 +993,12 @@ loadStructureFromExcel()
   })
   .catch(err => {
     console.error(err);
-    alert("Kunde inte läsa structure.xlsx. Om du kör filen direkt från datorn (file://) är det normalt – läsning via fetch blockeras. Ladda upp till GitHub eller kör via en webserver för att prova Excelfilen.");
+    alert("Kunde inte läsa structure1.xlsx. Om du kör filen direkt från datorn (file://) är det normalt – läsning via fetch blockeras. Ladda upp till GitHub eller kör via en webserver för att prova Excelfilen.");
     renderSetupCategoryTabs();
     renderSetupActList();
   });
 </script>
 </body>
 </html>
+
 
