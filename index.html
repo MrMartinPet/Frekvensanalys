@@ -432,9 +432,9 @@ const model = {
 
 // ===== LÄS STRUKTUR FRÅN EXCEL =====
 async function loadStructureFromExcel(){
-  const res = await fetch("lagledare_truck.xlsx");
+  const res = await fetch("lagledare_milkrun.xlsx");
   if(!res.ok){
-    throw new Error("Kunde inte hämta lagledare_truck.xlsx");
+    throw new Error("Kunde inte hämta lagledare_milkrun.xlsx");
   }
   const buf = await res.arrayBuffer();
 
@@ -495,7 +495,7 @@ function renderSetupCategoryTabs(){
   if(!host) return;
   host.innerHTML='';
   if(!model.tree.length){
-    host.innerHTML = "<div style='font-size:13px;color:#b91c1c;'>Ingen struktur inläst. Kontrollera lagledare_truck.xlsx.</div>";
+    host.innerHTML = "<div style='font-size:13px;color:#b91c1c;'>Ingen struktur inläst. Kontrollera lagledare_milkrun.xlsx.</div>";
     return;
   }
   model.tree.forEach((cat,idx)=>{
@@ -993,13 +993,14 @@ loadStructureFromExcel()
   })
   .catch(err => {
     console.error(err);
-    alert("Kunde inte läsa lagledare_truck.xlsx. Om du kör filen direkt från datorn (file://) är det normalt – läsning via fetch blockeras. Ladda upp till GitHub eller kör via en webserver för att prova Excelfilen.");
+    alert("Kunde inte läsa lagledare_milkrun.xlsx. Om du kör filen direkt från datorn (file://) är det normalt – läsning via fetch blockeras. Ladda upp till GitHub eller kör via en webserver för att prova Excelfilen.");
     renderSetupCategoryTabs();
     renderSetupActList();
   });
 </script>
 </body>
 </html>
+
 
 
 
