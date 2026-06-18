@@ -432,7 +432,7 @@ const model = {
 
 // ===== LÄS STRUKTUR FRÅN EXCEL =====
 async function loadStructureFromExcel(){
-  const res = await fetch("Utetruck1.xlsx");
+  const res = await fetch("Formning_standard.xlsx");
   if(!res.ok){
     throw new Error("Kunde inte hämta lagledare_milkrun.xlsx");
   }
