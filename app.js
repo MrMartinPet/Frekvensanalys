@@ -630,7 +630,7 @@ function addSetupActivity(value){
     const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
     const pageW=doc.internal.pageSize.getWidth(),pageH=doc.internal.pageSize.getHeight();
     const navy=[11,16,32],blue=[37,99,235],dark=[15,23,42],muted=[100,116,139],light=[241,245,249],white=[255,255,255];
-    const agg=aggregateByCategory ? aggregateByCategory() : aggregateCategories(state.totals);
+    const agg=aggregateCategories(state.totals);
     const trackedMs=Object.values(agg).reduce((a,b)=>a+b,0);
     const totalMs=Math.max(0,state.sessionEndTs-state.sessionStartTs);
     const trackedPct=totalMs>0?trackedMs/totalMs*100:0;
@@ -775,27 +775,7 @@ function addSetupActivity(value){
     if(state.mode==='summary') renderSummaryChart();
   }
 
-  function persistDraft(){
-  if(state.mode!=='analysis') return;
-  try{
-    const payload={
-      version:3,
-      savedAt:Date.now(),
-      header:state.header,
-      activities:state.activities,
-      selectedCategory:state.selectedCategory,
-      totals:state.totals,
-      counts:state.counts,
-      history:state.history,
-      active:state.active,
-      activeStartTs:state.activeStartTs,
-      sessionStartTs:state.sessionStartTs
-    };
-    localStorage.setItem(DRAFT_KEY,JSON.stringify(payload));
-  }catch(e){ console.warn('Kunde inte autospara',e); }
-}
-
-async function requestWakeLock(){
+  async function requestWakeLock(){
   if(state.mode !== 'analysis' || document.visibilityState !== 'visible' || !('wakeLock' in navigator)) return;
   try{
     if(state.wakeLock && !state.wakeLock.released) return;
