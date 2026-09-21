@@ -27,11 +27,11 @@
     setupView:$('setupView'), analysisView:$('analysisView'), summaryView:$('summaryView'),
     sourceSelect:$('sourceSelect'), refreshSourcesBtn:$('refreshSourcesBtn'), sourceStatus:$('sourceStatus'),
     leaderInput:$('leaderInput'), flowInput:$('flowInput'), dateInput:$('dateInput'), startBtn:$('startBtn'),
-    categoryPreview:$('categoryPreview'), setupCategoryTabs:$('setupCategoryTabs'), setupActivityEditor:$('setupActivityEditor'), themeBtn:$('themeBtn'), exportBtnTop:$('exportBtnTop'), resetBtnTop:$('resetBtnTop'),
+    setupActivityEditor:$('setupActivityEditor'), themeBtn:$('themeBtn'), quickSaveBtnTop:$('quickSaveBtnTop'), exportBtnTop:$('exportBtnTop'), pdfBtnTop:$('pdfBtnTop'), resetBtnTop:$('resetBtnTop'),
     liveTitle:$('liveTitle'), sessionMeta:$('sessionMeta'), activeActivity:$('activeActivity'), activeTimer:$('activeTimer'), sessionTimer:$('sessionTimer'),
-    addActivitiesBtn:$('addActivitiesBtn'), finishBtn:$('finishBtn'), categoryTabs:$('categoryTabs'), activityPanel:$('activityPanel'),
+    changeActivityBtn:$('changeActivityBtn'), addActivitiesBtn:$('addActivitiesBtn'), finishBtn:$('finishBtn'), categoryTabs:$('categoryTabs'), activityPanel:$('activityPanel'),
     liveCategoryBars:$('liveCategoryBars'), trackedShare:$('trackedShare'), recentHistory:$('recentHistory'),
-    summaryMeta:$('summaryMeta'), summaryPdfBtn:$('summaryPdfBtn'), summaryExportBtn:$('summaryExportBtn'), newAnalysisBtn:$('newAnalysisBtn'),
+    summaryMeta:$('summaryMeta'), summaryExportBtn:$('summaryExportBtn'), newAnalysisBtn:$('newAnalysisBtn'),
     sumTotal:$('sumTotal'), sumTracked:$('sumTracked'), sumSwitches:$('sumSwitches'), sumUsed:$('sumUsed'), activityRanking:$('activityRanking'), categoryChart:$('categoryChart'),
     modalBackdrop:$('modalBackdrop'), addCategorySelect:$('addCategorySelect'), newActivitiesInput:$('newActivitiesInput'),
     closeModalBtn:$('closeModalBtn'), cancelModalBtn:$('cancelModalBtn'), saveActivitiesBtn:$('saveActivitiesBtn'), toast:$('toast')
@@ -54,7 +54,8 @@
     chart:null,
     mode:'setup',
     lastLivePaint:0,
-    wakeLock:null
+    wakeLock:null,
+    correctionMode:false
   };
 
   function emptyActivityMap(){
@@ -231,101 +232,94 @@
     els.sourceStatus.className = `status-box${kind ? ' ' + kind : ''}`;
   }
 
-  function renderCategoryPreview(){
-  els.categoryPreview.innerHTML = CATEGORIES.map(c => `
-      <div class="preview-row">
-        <span class="preview-dot" style="background:${c.color}"></span>
-        <span class="preview-name">${escapeHtml(c.key)}</span>
-        <span class="preview-count">${state.activities[c.key].length} aktiviteter</span>
-      </div>`).join('');
-}
-
-function renderSetupConfiguration(){
-  renderCategoryPreview();
-  renderSetupCategoryTabs();
-  renderSetupActivityEditor();
-}
-
-function renderSetupCategoryTabs(){
-  els.setupCategoryTabs.innerHTML = CATEGORIES.map(c => `
-      <button type="button" class="category-tab${state.selectedCategory===c.key?' active':''}" data-category="${escapeAttr(c.key)}" style="--cat-color:${c.color}">
-        ${escapeHtml(c.key)}
-        <span class="tab-count">${state.activities[c.key].length} aktiviteter</span>
-      </button>`).join('');
-  els.setupCategoryTabs.querySelectorAll('.category-tab').forEach(btn => btn.addEventListener('click',() => {
-    state.selectedCategory = btn.dataset.category;
-    renderSetupCategoryTabs();
+  function renderSetupConfiguration(){
     renderSetupActivityEditor();
-  }));
-}
+  }
 
-function renderSetupActivityEditor(){
-  const cat = getCategory(state.selectedCategory);
-  const list = state.activities[cat.key] || [];
-  els.setupActivityEditor.style.setProperty('--cat-color',cat.color);
-  const rows = list.length ? `<div class="setup-activity-list">${list.map((name,index) => `
-      <div class="setup-activity-row" style="--cat-color:${cat.color}">
-        <input class="setup-edit-input" data-index="${index}" type="text" value="${escapeAttr(name)}">
-        <button class="setup-delete" data-index="${index}" type="button" title="Ta bort aktivitet">×</button>
-      </div>`).join('')}</div>` : '<div class="setup-empty">Inga aktiviteter i denna kategori ännu.</div>';
-  els.setupActivityEditor.innerHTML = `
-      <div class="setup-editor-title">
-        <div class="setup-editor-title-left"><span class="category-swatch" style="background:${cat.color}"></span><h3>${escapeHtml(cat.key)}</h3></div>
-        <span class="pill">${list.length}</span>
-      </div>
-      ${rows}
-      <div class="setup-add-row" style="--cat-color:${cat.color}">
-        <input id="setupNewActivityInput" type="text" placeholder="Ny aktivitet i ${escapeAttr(cat.key)}">
-        <button id="setupAddActivityBtn" class="btn primary" type="button">+ Lägg till aktivitet</button>
-      </div>`;
-  els.setupActivityEditor.querySelectorAll('.setup-edit-input').forEach(input => {
-    input.addEventListener('change',() => updateSetupActivity(Number(input.dataset.index),input.value));
-    input.addEventListener('keydown',e => { if(e.key === 'Enter'){ e.preventDefault(); input.blur(); } });
-  });
-  els.setupActivityEditor.querySelectorAll('.setup-delete').forEach(btn => btn.addEventListener('click',() => removeSetupActivity(Number(btn.dataset.index))));
-  const addInput = $('setupNewActivityInput');
-  $('setupAddActivityBtn')?.addEventListener('click',() => addSetupActivity(addInput.value));
-  addInput?.addEventListener('keydown',e => { if(e.key === 'Enter'){ e.preventDefault(); addSetupActivity(addInput.value); } });
-}
+  function renderSetupActivityEditor(){
+    els.setupActivityEditor.innerHTML = CATEGORIES.map((cat,catIndex) => {
+      const list = state.activities[cat.key] || [];
+      const rows = list.length ? `<div class="setup-activity-list">${list.map((name,index) => `
+          <div class="setup-activity-row" style="--cat-color:${cat.color}">
+            <input class="setup-edit-input" data-category="${escapeAttr(cat.key)}" data-index="${index}" type="text" value="${escapeAttr(name)}">
+            <button class="setup-delete" data-category="${escapeAttr(cat.key)}" data-index="${index}" type="button" title="Ta bort aktivitet">×</button>
+          </div>`).join('')}</div>` : '<div class="setup-empty">Inga aktiviteter i denna kategori ännu.</div>';
+      return `
+        <section class="setup-category-section" style="--cat-color:${cat.color}">
+          <div class="setup-editor-title">
+            <div class="setup-editor-title-left">
+              <span class="category-swatch" style="background:${cat.color}"></span>
+              <div><div class="setup-category-index">KATEGORI ${catIndex+1}</div><h3>${escapeHtml(cat.key)}</h3></div>
+            </div>
+            <span class="pill">${list.length} aktiviteter</span>
+          </div>
+          ${rows}
+          <div class="setup-add-row" style="--cat-color:${cat.color}">
+            <input class="setup-new-activity-input" data-category="${escapeAttr(cat.key)}" type="text" placeholder="Ny aktivitet i ${escapeAttr(cat.key)}">
+            <button class="btn primary setup-add-activity-btn" data-category="${escapeAttr(cat.key)}" type="button">+ Lägg till aktivitet</button>
+          </div>
+        </section>`;
+    }).join('');
 
-function updateSetupActivity(index,value){
-  if(state.mode !== 'setup') return;
-  const list = state.activities[state.selectedCategory];
-  if(!list || !list[index]) return;
-  const name = cleanActivity(value);
-  if(!name){ removeSetupActivity(index); return; }
-  if(list.some((x,i) => i !== index && normalize(x) === normalize(name))){
-    toast('Aktiviteten finns redan i kategorin.');
+    els.setupActivityEditor.querySelectorAll('.setup-edit-input').forEach(input => {
+      input.addEventListener('change',() => updateSetupActivity(input.dataset.category,Number(input.dataset.index),input.value));
+      input.addEventListener('keydown',e => { if(e.key === 'Enter'){ e.preventDefault(); input.blur(); } });
+    });
+    els.setupActivityEditor.querySelectorAll('.setup-delete').forEach(btn => {
+      btn.addEventListener('click',() => removeSetupActivity(btn.dataset.category,Number(btn.dataset.index)));
+    });
+    els.setupActivityEditor.querySelectorAll('.setup-add-activity-btn').forEach(btn => {
+      btn.addEventListener('click',() => {
+        const section=btn.closest('.setup-category-section');
+        const input=section?.querySelector('.setup-new-activity-input');
+        addSetupActivity(btn.dataset.category,input?.value || '');
+      });
+    });
+    els.setupActivityEditor.querySelectorAll('.setup-new-activity-input').forEach(input => {
+      input.addEventListener('keydown',e => {
+        if(e.key === 'Enter'){ e.preventDefault(); addSetupActivity(input.dataset.category,input.value); }
+      });
+    });
+  }
+
+  function updateSetupActivity(category,index,value){
+    if(state.mode !== 'setup') return;
+    const list = state.activities[category];
+    if(!list || list[index] === undefined) return;
+    const name = cleanActivity(value);
+    if(!name){ removeSetupActivity(category,index); return; }
+    if(list.some((x,i) => i !== index && normalize(x) === normalize(name))){
+      toast('Aktiviteten finns redan i kategorin.');
+      renderSetupActivityEditor();
+      return;
+    }
+    list[index] = name;
     renderSetupActivityEditor();
-    return;
   }
-  list[index] = name;
-  renderSetupConfiguration();
-}
 
-function removeSetupActivity(index){
-  if(state.mode !== 'setup') return;
-  const list = state.activities[state.selectedCategory];
-  if(!list || !list[index]) return;
-  list.splice(index,1);
-  renderSetupConfiguration();
-  els.startBtn.disabled = !state.selectedSource || totalConfiguredActivities() === 0;
-}
-
-function addSetupActivity(value){
-  if(state.mode !== 'setup') return;
-  const name = cleanActivity(value);
-  if(!name) return;
-  const list = state.activities[state.selectedCategory];
-  if(list.some(x => normalize(x) === normalize(name))){
-    toast('Aktiviteten finns redan i kategorin.');
-    return;
+  function removeSetupActivity(category,index){
+    if(state.mode !== 'setup') return;
+    const list = state.activities[category];
+    if(!list || list[index] === undefined) return;
+    list.splice(index,1);
+    renderSetupActivityEditor();
+    els.startBtn.disabled = !state.selectedSource || totalConfiguredActivities() === 0;
   }
-  list.push(name);
-  renderSetupConfiguration();
-  els.startBtn.disabled = !state.selectedSource || totalConfiguredActivities() === 0;
-  setTimeout(() => $('setupNewActivityInput')?.focus(),0);
-}
+
+  function addSetupActivity(category,value){
+    if(state.mode !== 'setup') return;
+    const name = cleanActivity(value);
+    if(!name) return;
+    const list = state.activities[category];
+    if(!list) return;
+    if(list.some(x => normalize(x) === normalize(name))){
+      toast('Aktiviteten finns redan i kategorin.');
+      return;
+    }
+    list.push(name);
+    renderSetupActivityEditor();
+    els.startBtn.disabled = !state.selectedSource || totalConfiguredActivities() === 0;
+  }
 
   function startSession(){
     if(!state.selectedSource || totalConfiguredActivities() === 0) return;
@@ -346,8 +340,11 @@ function addSetupActivity(value){
     state.sessionEndTs = 0;
     state.history = [];
     state.mode = 'analysis';
+    state.correctionMode = false;
     showView('analysis');
     els.exportBtnTop.disabled = false;
+    els.quickSaveBtnTop.disabled = false;
+    els.pdfBtnTop.disabled = false;
     renderAnalysis();
     requestWakeLock();
     tick();
@@ -388,11 +385,12 @@ function addSetupActivity(value){
     const list = state.activities[state.selectedCategory] || [];
     els.activityPanel.style.setProperty('--cat-color',cat.color);
     const head = `<div class="activity-head"><div class="activity-head-title"><span class="category-swatch" style="background:${cat.color}"></span><h2>${escapeHtml(cat.key)}</h2></div><span class="pill">${list.length}</span></div>`;
+    const correction = state.correctionMode ? '<div class="correction-banner">KORRIGERING AKTIV — välj den aktivitet som egentligen har pågått. Starttiden och den gångna tiden behålls.</div>' : '';
     if(!list.length){
-      els.activityPanel.innerHTML = head + '<div class="empty-state">Inga aktiviteter i denna kategori. Använd “Lägg till aktiviteter” under pågående analys.</div>';
+      els.activityPanel.innerHTML = head + correction + '<div class="empty-state">Inga aktiviteter i denna kategori. Använd “Lägg till aktiviteter” under pågående analys.</div>';
       return;
     }
-    els.activityPanel.innerHTML = head + `<div class="activity-grid">${list.map(a => {
+    els.activityPanel.innerHTML = head + correction + `<div class="activity-grid">${list.map(a => {
       const id = activityId(cat.key,a);
       const isActive = state.active?.id === id;
       return `<button type="button" class="activity-btn${isActive?' active':''}" data-id="${escapeAttr(id)}" style="--cat-color:${cat.color}">
@@ -404,18 +402,68 @@ function addSetupActivity(value){
   }
 
   function selectActivityById(id){
-  const info = activityInfoFromId(id);
-  if(!info || state.active?.id === id) return;
-  const now = Date.now();
-  closeActiveSegment(now);
-  state.active = {id, category:info.category, name:info.name};
-  state.activeStartTs = now;
-  state.counts[id] = (state.counts[id] || 0) + 1;
-  updateActiveHeader();
-  renderActivityPanel();
-  renderRecentHistory();
-  persistDraft();
-}
+    const info = activityInfoFromId(id);
+    if(!info) return;
+    const now = Date.now();
+
+    if(state.correctionMode){
+      if(!state.active){
+        setCorrectionMode(false);
+        toast('Ingen pågående aktivitet att korrigera.');
+        return;
+      }
+      if(state.active.id === id){
+        setCorrectionMode(false);
+        toast('Aktiviteten ändrades inte.');
+        return;
+      }
+      const old = {...state.active};
+      state.counts[old.id] = Math.max(0,(state.counts[old.id] || 0) - 1);
+      state.counts[id] = (state.counts[id] || 0) + 1;
+      state.active = {id, category:info.category, name:info.name};
+      state.selectedCategory = info.category;
+      setCorrectionMode(false);
+      updateActiveHeader();
+      renderCategoryTabs();
+      renderActivityPanel();
+      renderLiveBars();
+      persistDraft();
+      toast(`Ändrad: ${old.name} → ${info.name}. Tiden fortsatte utan omstart.`);
+      return;
+    }
+
+    if(state.active?.id === id) return;
+    closeActiveSegment(now);
+    state.active = {id, category:info.category, name:info.name};
+    state.activeStartTs = now;
+    state.counts[id] = (state.counts[id] || 0) + 1;
+    updateActiveHeader();
+    renderActivityPanel();
+    persistDraft();
+  }
+
+  
+  function setCorrectionMode(on){
+    const next = !!on && !!state.active && state.mode === 'analysis';
+    state.correctionMode = next;
+    updateCorrectionButton();
+    renderActivityPanel();
+  }
+
+  function updateCorrectionButton(){
+    if(!els.changeActivityBtn) return;
+    const canChange = state.mode === 'analysis' && !!state.active;
+    els.changeActivityBtn.disabled = !canChange;
+    els.changeActivityBtn.classList.toggle('armed',state.correctionMode);
+    els.changeActivityBtn.setAttribute('aria-pressed',state.correctionMode ? 'true' : 'false');
+    els.changeActivityBtn.textContent = state.correctionMode ? 'Välj rätt aktivitet…' : 'Ändra aktivitet';
+  }
+
+  function toggleCorrectionMode(){
+    if(!state.active){ toast('Starta en aktivitet först.'); return; }
+    setCorrectionMode(!state.correctionMode);
+    if(state.correctionMode) toast('Korrigeringsläge aktivt. Välj rätt kategori och aktivitet.');
+  }
 
   function closeActiveSegment(now){
     if(!state.active) return;
@@ -457,6 +505,7 @@ function addSetupActivity(value){
 
   function updateActiveHeader(){
     els.activeActivity.textContent = state.active ? state.active.name : 'Ingen vald';
+    updateCorrectionButton();
   }
 
   function aggregateCategories(totals){
@@ -490,6 +539,7 @@ function addSetupActivity(value){
   }
 
   function openAddModal(){
+    if(state.correctionMode) setCorrectionMode(false);
     els.addCategorySelect.innerHTML = CATEGORIES.map(c => `<option value="${escapeAttr(c.key)}"${c.key===state.selectedCategory?' selected':''}>${escapeHtml(c.key)}</option>`).join('');
     els.newActivitiesInput.value = '';
     els.modalBackdrop.classList.remove('hidden');
@@ -531,6 +581,7 @@ function addSetupActivity(value){
     state.activeStartTs = 0;
     state.sessionEndTs = now;
     state.mode = 'summary';
+    state.correctionMode = false;
     cancelAnimationFrame(state.raf);
     releaseWakeLock();
     clearDraft();
@@ -578,33 +629,27 @@ function addSetupActivity(value){
     els.activityRanking.innerHTML = rows.length ? rows.map((r,i)=>`<div class="rank-row"><div class="rank-no">${i+1}</div><div><div class="rank-name">${escapeHtml(r.name)}</div><div class="rank-cat">${escapeHtml(r.category)} · ${r.count} tillfällen</div></div><div class="rank-val">${fmtShort(r.ms)}<span>${(r.ms/total*100).toFixed(1)} %</span></div></div>`).join('') : '<div class="empty-state">Ingen aktivitetstid registrerades.</div>';
   }
 
-  function downloadExcel(){
+  function exportExcelFile(quick=false){
     if(!state.sessionStartTs){ toast('Ingen analys att exportera.'); return; }
     const wb = XLSX.utils.book_new();
-    const base = Date.now() - (Date.now() - state.sessionStartTs);
-    const endPerf = state.mode === 'analysis' ? Date.now() : state.sessionEndTs;
-    const totals = state.mode === 'analysis' ? previewTotals(endPerf) : state.totals;
+    const endTs = state.mode === 'analysis' ? Date.now() : state.sessionEndTs;
+    const totals = state.mode === 'analysis' ? previewTotals(endTs) : {...state.totals};
     const hist = state.history.slice();
     if(state.mode === 'analysis' && state.active){
-      hist.push({id:state.active.id,category:state.active.category,activity:state.active.name,start:state.activeStartTs,end:endPerf,duration:endPerf-state.activeStartTs});
+      hist.push({id:state.active.id,category:state.active.category,activity:state.active.name,start:state.activeStartTs,end:endTs,duration:endTs-state.activeStartTs});
     }
-
     const meta = [
       ['Frekvensanalys'],
       ['Observatör',state.header.leader],
       ['Flöde / område',state.header.flow],
       ['Datum',state.header.date],
       ['Källa',state.header.source],
+      ['Status',state.mode === 'analysis' ? 'Pågående' : 'Avslutad'],
       ['Exporterat',new Date().toLocaleString('sv-SE')],
       []
     ];
     const details = meta.concat([['Kategori','Aktivitet','Start','Slut','Sekunder']]);
-    hist.forEach(h => details.push([
-      h.category,h.activity,
-      new Date(base + (h.start-state.sessionStartTs)).toLocaleString('sv-SE'),
-      new Date(base + (h.end-state.sessionStartTs)).toLocaleString('sv-SE'),
-      +(h.duration/1000).toFixed(2)
-    ]));
+    hist.forEach(h => details.push([h.category,h.activity,new Date(h.start).toLocaleString('sv-SE'),new Date(h.end).toLocaleString('sv-SE'),+(h.duration/1000).toFixed(2)]));
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(details),'Detaljer');
 
     const agg = aggregateCategories(totals);
@@ -615,32 +660,47 @@ function addSetupActivity(value){
 
     const actRows = [['Kategori','Aktivitet','Sekunder','Minuter','Tillfällen']];
     CATEGORIES.forEach(c => state.activities[c.key].forEach(a => {
-      const id=activityId(c.key,a); actRows.push([c.key,a,+((totals[id]||0)/1000).toFixed(2),+((totals[id]||0)/60000).toFixed(2),state.counts[id]||0]);
+      const id=activityId(c.key,a);
+      actRows.push([c.key,a,+((totals[id]||0)/1000).toFixed(2),+((totals[id]||0)/60000).toFixed(2),state.counts[id]||0]);
     }));
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(actRows),'Aktiviteter');
 
-    const safeFlow = (state.header.flow || 'analys').replace(/[^a-zA-Z0-9åäöÅÄÖ_-]+/g,'_');
-    XLSX.writeFile(wb,`frekvensanalys_${safeFlow}_${state.header.date || todayISO()}.xlsx`);
+    const safeFlow = safeFilePart(state.header.flow || 'analys');
+    const stamp = new Date().toLocaleTimeString('sv-SE',{hour12:false}).replace(/:/g,'');
+    const filename = quick ? `frekvensanalys_snabbspar_${safeFlow}_${state.header.date || todayISO()}_${stamp}.xlsx` : `frekvensanalys_${safeFlow}_${state.header.date || todayISO()}.xlsx`;
+    XLSX.writeFile(wb,filename);
+  }
+
+  function downloadExcel(){
+    exportExcelFile(false);
+  }
+
+  function quickSaveExcel(){
+    exportExcelFile(true);
+    toast('Excel-snapshot sparad.');
   }
 
   function downloadPdfReport(){
-    if(state.mode !== 'summary' || !state.sessionStartTs){ toast('Avsluta analysen innan PDF-rapporten skapas.'); return; }
+    if(!state.sessionStartTs){ toast('Ingen analys att skapa rapport från.'); return; }
     if(!window.jspdf?.jsPDF){ toast('PDF-motorn kunde inte laddas.'); return; }
     const {jsPDF}=window.jspdf;
     const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
     const pageW=doc.internal.pageSize.getWidth(),pageH=doc.internal.pageSize.getHeight();
     const navy=[11,16,32],blue=[37,99,235],dark=[15,23,42],muted=[100,116,139],light=[241,245,249],white=[255,255,255];
-    const agg=aggregateCategories(state.totals);
+    const endTs=state.mode==='analysis' ? Date.now() : state.sessionEndTs;
+    const totals=state.mode==='analysis' ? previewTotals(endTs) : {...state.totals};
+    const agg=aggregateCategories(totals);
     const trackedMs=Object.values(agg).reduce((a,b)=>a+b,0);
-    const totalMs=Math.max(0,state.sessionEndTs-state.sessionStartTs);
+    const totalMs=Math.max(0,endTs-state.sessionStartTs);
     const trackedPct=totalMs>0?trackedMs/totalMs*100:0;
     const rows=[];
     CATEGORIES.forEach(c=>state.activities[c.key].forEach(a=>{
-      const id=activityId(c.key,a),ms=state.totals[id]||0;
+      const id=activityId(c.key,a),ms=totals[id]||0;
       if(ms>0) rows.push({category:c.key,name:a,ms,count:state.counts[id]||0});
     }));
     rows.sort((a,b)=>b.ms-a.ms);
-  
+    const reportStatus=state.mode==='analysis' ? 'Pågående snapshot' : 'Slutrapport';
+
     const header=(title,subtitle)=>{
       doc.setFillColor(...navy);doc.rect(0,0,pageW,30,'F');
       doc.setFillColor(...blue);doc.roundedRect(12,7,16,16,3,3,'F');
@@ -656,14 +716,14 @@ function addSetupActivity(value){
       doc.setTextColor(...muted);doc.setFont('helvetica','bold');doc.setFontSize(7);doc.text(label,x+7,y+7);
       doc.setTextColor(...dark);doc.setFontSize(13);doc.text(value,x+7,y+16);
     };
-  
-    header('FREKVENSANALYS','Dometic · Process Observation · Resultatrapport');
+
+    header('FREKVENSANALYS',`Dometic · Process Observation · ${reportStatus}`);
     const gap=4,margin=12,w=(pageW-margin*2-gap*3)/4;
     kpi(margin,37,w,'TOTAL ANALYS',fmt(totalMs));
     kpi(margin+w+gap,37,w,'KLASSIFICERAD TID',fmt(trackedMs),[22,163,74]);
     kpi(margin+(w+gap)*2,37,w,'KLASSIFICERAD ANDEL',`${trackedPct.toFixed(1)} %`,[251,152,70]);
     kpi(margin+(w+gap)*3,37,w,'AKTIVITETER ANVÄNDA',String(rows.length),[78,172,196]);
-  
+
     doc.setTextColor(...dark);doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text('TID PER KATEGORI',12,70);
     doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...muted);doc.text('Andel av klassificerad tid',12,75);
     const barX=53,barW=91,valueX=151;
@@ -676,7 +736,7 @@ function addSetupActivity(value){
       doc.setTextColor(...dark);doc.text(`${pct.toFixed(1)} %`,valueX,y-1,{align:'right'});
       doc.setTextColor(...muted);doc.setFont('helvetica','normal');doc.setFontSize(7);doc.text(fmt(ms),valueX,y+4,{align:'right'});
     });
-  
+
     const top=rows.slice(0,8).map((r,i)=>[String(i+1),r.name,r.category,fmt(r.ms),`${(r.ms/(trackedMs||1)*100).toFixed(1)} %`,String(r.count)]);
     doc.setTextColor(...dark);doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text('AKTIVITETER MED MEST TID',166,70);
     doc.autoTable({startY:76,margin:{left:166,right:12},head:[['#','Aktivitet','Kategori','Tid','Andel','Tillfällen']],body:top,theme:'grid',
@@ -685,8 +745,10 @@ function addSetupActivity(value){
       columnStyles:{0:{cellWidth:8,halign:'center'},1:{cellWidth:44},2:{cellWidth:28},3:{cellWidth:25,halign:'right'},4:{cellWidth:16,halign:'right'},5:{cellWidth:16,halign:'right'}}
     });
     doc.setDrawColor(226,232,240);doc.line(12,pageH-20,pageW-12,pageH-20);
-    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(...muted);doc.text(`Källa: ${state.header.source||'Ej angiven'}`,12,pageH-13);doc.text(`Genererad ${new Date().toLocaleString('sv-SE')}`,pageW-12,pageH-13,{align:'right'});
-  
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(...muted);
+    doc.text(`Källa: ${state.header.source||'Ej angiven'} · ${reportStatus}`,12,pageH-13);
+    doc.text(`Genererad ${new Date().toLocaleString('sv-SE')}`,pageW-12,pageH-13,{align:'right'});
+
     doc.addPage('a4','landscape');header('DETALJERAD RESULTATRAPPORT','Aktiviteter, tider och antal byten');
     doc.setTextColor(...dark);doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text('SAMTLIGA REGISTRERADE AKTIVITETER',12,41);
     const full=rows.map((r,i)=>[String(i+1),r.category,r.name,fmt(r.ms),`${(r.ms/(trackedMs||1)*100).toFixed(1)} %`,String(r.count)]);
@@ -697,7 +759,8 @@ function addSetupActivity(value){
     });
     const pages=doc.internal.getNumberOfPages();
     for(let p=1;p<=pages;p++){doc.setPage(p);doc.setFontSize(7);doc.setTextColor(...muted);doc.text(`${p} / ${pages}`,pageW-12,pageH-8,{align:'right'});}
-    doc.save(`frekvensanalys_${safeFilePart(state.header.flow||'analys')}_${state.header.date||todayISO()}.pdf`);
+    const prefix=state.mode==='analysis'?'frekvensanalys_snapshot':'frekvensanalys';
+    doc.save(`${prefix}_${safeFilePart(state.header.flow||'analys')}_${state.header.date||todayISO()}.pdf`);
   }
 
   function hexToRgb(hex){
@@ -719,6 +782,8 @@ function addSetupActivity(value){
     state.totals={};state.counts={};state.active=null;state.history=[];state.sessionStartTs=0;state.sessionEndTs=0;state.mode='setup';
     els.sourceSelect.value='';
     els.exportBtnTop.disabled=true;
+    els.quickSaveBtnTop.disabled=true;
+    els.pdfBtnTop.disabled=true;
     els.startBtn.disabled=true;
     renderSetupConfiguration();
     setSourceStatus('Välj en källa.','');
@@ -730,6 +795,8 @@ function addSetupActivity(value){
     cancelAnimationFrame(state.raf);releaseWakeLock();clearDraft();
     state.totals={};state.counts={};state.active=null;state.history=[];state.sessionStartTs=0;state.sessionEndTs=0;state.mode='setup';
     els.exportBtnTop.disabled=true;
+    els.quickSaveBtnTop.disabled=true;
+    els.pdfBtnTop.disabled=true;
     showView('setup');
     renderSetupConfiguration();
     els.startBtn.disabled = !state.selectedSource || totalConfiguredActivities()===0;
@@ -832,6 +899,9 @@ function tryRestoreDraft(){
   state.selectedSource=state.header.source?{name:state.header.source}:null;
   state.mode='analysis';
   els.exportBtnTop.disabled=false;
+  els.quickSaveBtnTop.disabled=false;
+  els.pdfBtnTop.disabled=false;
+  state.correctionMode=false;
   showView('analysis');
   renderAnalysis();
   requestWakeLock();
@@ -847,21 +917,23 @@ function tryRestoreDraft(){
     els.sourceSelect.addEventListener('change',loadSelectedSource);
     els.refreshSourcesBtn.addEventListener('click',loadSources);
     els.startBtn.addEventListener('click',startSession);
+    els.changeActivityBtn.addEventListener('click',toggleCorrectionMode);
     els.addActivitiesBtn.addEventListener('click',openAddModal);
     els.closeModalBtn.addEventListener('click',closeAddModal);
     els.cancelModalBtn.addEventListener('click',closeAddModal);
     els.saveActivitiesBtn.addEventListener('click',addActivitiesDuringAnalysis);
     els.modalBackdrop.addEventListener('click',e=>{if(e.target===els.modalBackdrop)closeAddModal();});
     els.finishBtn.addEventListener('click',finishSession);
+    els.quickSaveBtnTop.addEventListener('click',quickSaveExcel);
     els.exportBtnTop.addEventListener('click',downloadExcel);
+    els.pdfBtnTop.addEventListener('click',downloadPdfReport);
     els.summaryExportBtn.addEventListener('click',downloadExcel);
-    els.summaryPdfBtn.addEventListener('click',downloadPdfReport);
     els.newAnalysisBtn.addEventListener('click',newAnalysis);
     els.resetBtnTop.addEventListener('click',resetAll);
     els.themeBtn.addEventListener('click',()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'));
     document.addEventListener('visibilitychange',()=>{
       if(state.mode!=='analysis') return;
-      if(document.visibilityState==='hidden'){persistDraft();}
+      if(document.visibilityState==='hidden'){ if(state.correctionMode){state.correctionMode=false;updateCorrectionButton();} persistDraft();}
       else{renderActivityPanel();renderLiveBars();requestWakeLock();}
     });
     window.addEventListener('pagehide',()=>{if(state.mode==='analysis')persistDraft();});

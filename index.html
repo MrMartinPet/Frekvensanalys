@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
 <div class="app">
@@ -21,7 +23,9 @@
     </div>
     <div class="menu-actions">
       <button id="themeBtn" class="btn small secondary" type="button" title="Växla tema">☀︎</button>
+      <button id="quickSaveBtnTop" class="btn small secondary quick-save-btn" type="button" disabled title="Spara en Excel-kopia direkt">💾 Snabbspara</button>
       <button id="exportBtnTop" class="btn small secondary" type="button" disabled>Excel</button>
+      <button id="pdfBtnTop" class="btn small secondary report-btn" type="button" disabled>PDF</button>
       <button id="resetBtnTop" class="btn small danger" type="button">Nollställ</button>
     </div>
   </header>
@@ -32,9 +36,7 @@
         <article class="card setup-card">
           <div class="eyebrow">FÖRE ANALYSEN</div>
           <h1>Välj källa och starta</h1>
-          <p class="muted">Appen hämtar automatiskt uppladdade Excel-filer från repot. Kategorierna är alltid samma.</p>
-
-          <div class="form-grid">
+<div class="form-grid">
             <label class="field span-2">
               <span>KÄLLA</span>
               <div class="source-row">
@@ -66,18 +68,6 @@
             <button id="startBtn" class="btn primary big" type="button" disabled>Starta analys</button>
           </div>
         </article>
-
-        <article class="card category-preview-card">
-          <div class="card-head">
-            <div>
-              <div class="eyebrow">STANDARD</div>
-              <h2>Fasta kategorier</h2>
-            </div>
-            <span class="pill">5 kategorier</span>
-          </div>
-          <div id="categoryPreview" class="category-preview"></div>
-          <div class="locked-note">Kategorierna är låsta. Du kan redigera, ta bort och lägga till aktiviteter under dem.</div>
-        </article>
       </div>
     <article class="card setup-activity-card">
       <div class="card-head setup-editor-head">
@@ -87,7 +77,6 @@
         </div>
         <span class="pill">Ändringar gäller denna analys</span>
       </div>
-      <div id="setupCategoryTabs" class="category-tabs setup-tabs" role="tablist"></div>
       <div id="setupActivityEditor" class="setup-activity-editor"></div>
     </article>
     </section>
@@ -103,6 +92,7 @@
                 <div id="sessionMeta" class="muted compact"></div>
               </div>
               <div class="live-actions">
+                <button id="changeActivityBtn" class="btn secondary change-activity-btn" type="button" aria-pressed="false" disabled>Ändra aktivitet</button>
                 <button id="addActivitiesBtn" class="btn secondary" type="button">+ Lägg till aktiviteter</button>
                 <button id="finishBtn" class="btn danger" type="button">Avsluta</button>
               </div>
@@ -152,7 +142,6 @@
           <div id="summaryMeta" class="muted compact"></div>
         </div>
         <div class="toolbar-actions">
-          <button id="summaryPdfBtn" class="btn secondary report-btn" type="button">PDF-rapport</button>
           <button id="summaryExportBtn" class="btn secondary" type="button">Exportera Excel</button>
           <button id="newAnalysisBtn" class="btn primary" type="button">Ny analys</button>
         </div>
