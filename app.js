@@ -5,6 +5,7 @@
   const REPO_NAME = 'Frekvensanalys';
   const REPO_BRANCH = 'main';
   const API_ROOT = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/`;
+  const DRAFT_KEY = 'fa_draft_v3';
 
   const CATEGORIES = [
     { key:'Processarbete', color:'#fb9846' },
@@ -26,11 +27,11 @@
     setupView:$('setupView'), analysisView:$('analysisView'), summaryView:$('summaryView'),
     sourceSelect:$('sourceSelect'), refreshSourcesBtn:$('refreshSourcesBtn'), sourceStatus:$('sourceStatus'),
     leaderInput:$('leaderInput'), flowInput:$('flowInput'), dateInput:$('dateInput'), startBtn:$('startBtn'),
-    categoryPreview:$('categoryPreview'), themeBtn:$('themeBtn'), exportBtnTop:$('exportBtnTop'), resetBtnTop:$('resetBtnTop'),
+    categoryPreview:$('categoryPreview'), setupCategoryTabs:$('setupCategoryTabs'), setupActivityEditor:$('setupActivityEditor'), themeBtn:$('themeBtn'), exportBtnTop:$('exportBtnTop'), resetBtnTop:$('resetBtnTop'),
     liveTitle:$('liveTitle'), sessionMeta:$('sessionMeta'), activeActivity:$('activeActivity'), activeTimer:$('activeTimer'), sessionTimer:$('sessionTimer'),
     addActivitiesBtn:$('addActivitiesBtn'), finishBtn:$('finishBtn'), categoryTabs:$('categoryTabs'), activityPanel:$('activityPanel'),
     liveCategoryBars:$('liveCategoryBars'), trackedShare:$('trackedShare'), recentHistory:$('recentHistory'),
-    summaryMeta:$('summaryMeta'), summaryExportBtn:$('summaryExportBtn'), newAnalysisBtn:$('newAnalysisBtn'),
+    summaryMeta:$('summaryMeta'), summaryPdfBtn:$('summaryPdfBtn'), summaryExportBtn:$('summaryExportBtn'), newAnalysisBtn:$('newAnalysisBtn'),
     sumTotal:$('sumTotal'), sumTracked:$('sumTracked'), sumSwitches:$('sumSwitches'), sumUsed:$('sumUsed'), activityRanking:$('activityRanking'), categoryChart:$('categoryChart'),
     modalBackdrop:$('modalBackdrop'), addCategorySelect:$('addCategorySelect'), newActivitiesInput:$('newActivitiesInput'),
     closeModalBtn:$('closeModalBtn'), cancelModalBtn:$('cancelModalBtn'), saveActivitiesBtn:$('saveActivitiesBtn'), toast:$('toast')
@@ -45,14 +46,15 @@
     totals:{},
     counts:{},
     active:null,
-    activeStart:0,
-    sessionStart:0,
-    sessionEnd:0,
+    activeStartTs:0,
+    sessionStartTs:0,
+    sessionEndTs:0,
     history:[],
     raf:0,
     chart:null,
     mode:'setup',
-    lastLivePaint:0
+    lastLivePaint:0,
+    wakeLock:null
   };
 
   function emptyActivityMap(){
@@ -187,7 +189,8 @@
     if(!Number.isInteger(idx) || !state.sources[idx]){
       state.selectedSource = null;
       state.activities = emptyActivityMap();
-      renderCategoryPreview();
+      state.selectedCategory=CATEGORIES[0].key;
+      renderSetupConfiguration();
       els.startBtn.disabled = true;
       setSourceStatus('Välj en källa.','');
       return;
@@ -202,14 +205,14 @@
       const parsed = parseWorkbook(await res.arrayBuffer());
       state.activities = parsed.activities;
       state.selectedCategory = firstNonEmptyCategory();
-      renderCategoryPreview();
+      renderSetupConfiguration();
       const total = totalConfiguredActivities();
       setSourceStatus(`${source.name}: ${total} aktiviteter inlästa.${parsed.warning ? ' ' + parsed.warning : ''}`, parsed.warning ? 'warn' : 'ok');
       els.startBtn.disabled = total === 0;
     }catch(err){
       console.error(err);
       state.activities = emptyActivityMap();
-      renderCategoryPreview();
+      renderSetupConfiguration();
       setSourceStatus(err.message || 'Kunde inte läsa Excel-filen.','error');
       els.startBtn.disabled = true;
     }
@@ -229,13 +232,100 @@
   }
 
   function renderCategoryPreview(){
-    els.categoryPreview.innerHTML = CATEGORIES.map(c => `
+  els.categoryPreview.innerHTML = CATEGORIES.map(c => `
       <div class="preview-row">
         <span class="preview-dot" style="background:${c.color}"></span>
-        <span class="preview-name">${c.key}</span>
+        <span class="preview-name">${escapeHtml(c.key)}</span>
         <span class="preview-count">${state.activities[c.key].length} aktiviteter</span>
       </div>`).join('');
+}
+
+function renderSetupConfiguration(){
+  renderCategoryPreview();
+  renderSetupCategoryTabs();
+  renderSetupActivityEditor();
+}
+
+function renderSetupCategoryTabs(){
+  els.setupCategoryTabs.innerHTML = CATEGORIES.map(c => `
+      <button type="button" class="category-tab${state.selectedCategory===c.key?' active':''}" data-category="${escapeAttr(c.key)}" style="--cat-color:${c.color}">
+        ${escapeHtml(c.key)}
+        <span class="tab-count">${state.activities[c.key].length} aktiviteter</span>
+      </button>`).join('');
+  els.setupCategoryTabs.querySelectorAll('.category-tab').forEach(btn => btn.addEventListener('click',() => {
+    state.selectedCategory = btn.dataset.category;
+    renderSetupCategoryTabs();
+    renderSetupActivityEditor();
+  }));
+}
+
+function renderSetupActivityEditor(){
+  const cat = getCategory(state.selectedCategory);
+  const list = state.activities[cat.key] || [];
+  els.setupActivityEditor.style.setProperty('--cat-color',cat.color);
+  const rows = list.length ? `<div class="setup-activity-list">${list.map((name,index) => `
+      <div class="setup-activity-row" style="--cat-color:${cat.color}">
+        <input class="setup-edit-input" data-index="${index}" type="text" value="${escapeAttr(name)}">
+        <button class="setup-delete" data-index="${index}" type="button" title="Ta bort aktivitet">×</button>
+      </div>`).join('')}</div>` : '<div class="setup-empty">Inga aktiviteter i denna kategori ännu.</div>';
+  els.setupActivityEditor.innerHTML = `
+      <div class="setup-editor-title">
+        <div class="setup-editor-title-left"><span class="category-swatch" style="background:${cat.color}"></span><h3>${escapeHtml(cat.key)}</h3></div>
+        <span class="pill">${list.length}</span>
+      </div>
+      ${rows}
+      <div class="setup-add-row" style="--cat-color:${cat.color}">
+        <input id="setupNewActivityInput" type="text" placeholder="Ny aktivitet i ${escapeAttr(cat.key)}">
+        <button id="setupAddActivityBtn" class="btn primary" type="button">+ Lägg till aktivitet</button>
+      </div>`;
+  els.setupActivityEditor.querySelectorAll('.setup-edit-input').forEach(input => {
+    input.addEventListener('change',() => updateSetupActivity(Number(input.dataset.index),input.value));
+    input.addEventListener('keydown',e => { if(e.key === 'Enter'){ e.preventDefault(); input.blur(); } });
+  });
+  els.setupActivityEditor.querySelectorAll('.setup-delete').forEach(btn => btn.addEventListener('click',() => removeSetupActivity(Number(btn.dataset.index))));
+  const addInput = $('setupNewActivityInput');
+  $('setupAddActivityBtn')?.addEventListener('click',() => addSetupActivity(addInput.value));
+  addInput?.addEventListener('keydown',e => { if(e.key === 'Enter'){ e.preventDefault(); addSetupActivity(addInput.value); } });
+}
+
+function updateSetupActivity(index,value){
+  if(state.mode !== 'setup') return;
+  const list = state.activities[state.selectedCategory];
+  if(!list || !list[index]) return;
+  const name = cleanActivity(value);
+  if(!name){ removeSetupActivity(index); return; }
+  if(list.some((x,i) => i !== index && normalize(x) === normalize(name))){
+    toast('Aktiviteten finns redan i kategorin.');
+    renderSetupActivityEditor();
+    return;
   }
+  list[index] = name;
+  renderSetupConfiguration();
+}
+
+function removeSetupActivity(index){
+  if(state.mode !== 'setup') return;
+  const list = state.activities[state.selectedCategory];
+  if(!list || !list[index]) return;
+  list.splice(index,1);
+  renderSetupConfiguration();
+  els.startBtn.disabled = !state.selectedSource || totalConfiguredActivities() === 0;
+}
+
+function addSetupActivity(value){
+  if(state.mode !== 'setup') return;
+  const name = cleanActivity(value);
+  if(!name) return;
+  const list = state.activities[state.selectedCategory];
+  if(list.some(x => normalize(x) === normalize(name))){
+    toast('Aktiviteten finns redan i kategorin.');
+    return;
+  }
+  list.push(name);
+  renderSetupConfiguration();
+  els.startBtn.disabled = !state.selectedSource || totalConfiguredActivities() === 0;
+  setTimeout(() => $('setupNewActivityInput')?.focus(),0);
+}
 
   function startSession(){
     if(!state.selectedSource || totalConfiguredActivities() === 0) return;
@@ -251,14 +341,15 @@
       const id = activityId(c.key,a); state.totals[id] = 0; state.counts[id] = 0;
     }));
     state.active = null;
-    state.activeStart = 0;
-    state.sessionStart = performance.now();
-    state.sessionEnd = 0;
+    state.activeStartTs = 0;
+    state.sessionStartTs = Date.now();
+    state.sessionEndTs = 0;
     state.history = [];
     state.mode = 'analysis';
     showView('analysis');
     els.exportBtnTop.disabled = false;
     renderAnalysis();
+    requestWakeLock();
     tick();
     persistDraft();
   }
@@ -313,36 +404,37 @@
   }
 
   function selectActivityById(id){
-    const info = activityInfoFromId(id);
-    if(!info) return;
-    const now = performance.now();
-    closeActiveSegment(now);
-    state.active = {id, category:info.category, name:info.name};
-    state.activeStart = now;
-    state.counts[id] = (state.counts[id] || 0) + 1;
-    updateActiveHeader();
-    renderActivityPanel();
-    persistDraft();
-  }
+  const info = activityInfoFromId(id);
+  if(!info || state.active?.id === id) return;
+  const now = Date.now();
+  closeActiveSegment(now);
+  state.active = {id, category:info.category, name:info.name};
+  state.activeStartTs = now;
+  state.counts[id] = (state.counts[id] || 0) + 1;
+  updateActiveHeader();
+  renderActivityPanel();
+  renderRecentHistory();
+  persistDraft();
+}
 
   function closeActiveSegment(now){
     if(!state.active) return;
-    const ms = Math.max(0,now - state.activeStart);
+    const ms = Math.max(0,now - state.activeStartTs);
     if(ms > 0){
       state.totals[state.active.id] = (state.totals[state.active.id] || 0) + ms;
       state.history.push({
         id:state.active.id, category:state.active.category, activity:state.active.name,
-        start:state.activeStart, end:now, duration:ms
+        start:state.activeStartTs, end:now, duration:ms
       });
     }
   }
 
   function tick(){
     if(state.mode !== 'analysis') return;
-    const now = performance.now();
-    const sessionMs = now - state.sessionStart;
+    const now = Date.now();
+    const sessionMs = now - state.sessionStartTs;
     els.sessionTimer.textContent = fmt(sessionMs);
-    els.activeTimer.textContent = state.active ? fmt(now - state.activeStart) : '00:00:00';
+    els.activeTimer.textContent = state.active ? fmt(now - state.activeStartTs) : '00:00:00';
 
     const preview = previewTotals(now);
     Object.entries(preview).forEach(([id,ms]) => {
@@ -357,9 +449,9 @@
     state.raf = requestAnimationFrame(tick);
   }
 
-  function previewTotals(now=performance.now()){
+  function previewTotals(now=Date.now()){
     const totals = {...state.totals};
-    if(state.active) totals[state.active.id] = (totals[state.active.id] || 0) + Math.max(0,now-state.activeStart);
+    if(state.active) totals[state.active.id] = (totals[state.active.id] || 0) + Math.max(0,now-state.activeStartTs);
     return totals;
   }
 
@@ -376,7 +468,7 @@
     return out;
   }
 
-  function renderLiveBars(totals=previewTotals(),sessionMs=(state.mode==='analysis'?performance.now()-state.sessionStart:state.sessionEnd-state.sessionStart)){
+  function renderLiveBars(totals=previewTotals(),sessionMs=(state.mode==='analysis'?Date.now()-state.sessionStartTs:state.sessionEndTs-state.sessionStartTs)){
     const agg = aggregateCategories(totals);
     const tracked = Object.values(agg).reduce((a,b)=>a+b,0);
     const denom = tracked || 1;
@@ -433,20 +525,21 @@
 
   function finishSession(){
     if(!confirm('Avsluta analysen och lås resultatet?')) return;
-    const now = performance.now();
+    const now = Date.now();
     closeActiveSegment(now);
     state.active = null;
-    state.activeStart = 0;
-    state.sessionEnd = now;
+    state.activeStartTs = 0;
+    state.sessionEndTs = now;
     state.mode = 'summary';
     cancelAnimationFrame(state.raf);
+    releaseWakeLock();
     clearDraft();
     showView('summary');
     renderSummary();
   }
 
   function renderSummary(){
-    const totalMs = Math.max(0,state.sessionEnd-state.sessionStart);
+    const totalMs = Math.max(0,state.sessionEndTs-state.sessionStartTs);
     const trackedMs = Object.values(state.totals).reduce((a,b)=>a+b,0);
     const used = Object.values(state.totals).filter(v=>v>0).length;
     els.summaryMeta.textContent = [state.header.leader || 'Ej angiven observatör', state.header.flow || 'Ej angivet flöde', state.header.date, state.header.source].join(' · ');
@@ -486,19 +579,19 @@
   }
 
   function downloadExcel(){
-    if(!state.sessionStart){ toast('Ingen analys att exportera.'); return; }
+    if(!state.sessionStartTs){ toast('Ingen analys att exportera.'); return; }
     const wb = XLSX.utils.book_new();
-    const base = Date.now() - (performance.now() - state.sessionStart);
-    const endPerf = state.mode === 'analysis' ? performance.now() : state.sessionEnd;
+    const base = Date.now() - (Date.now() - state.sessionStartTs);
+    const endPerf = state.mode === 'analysis' ? Date.now() : state.sessionEndTs;
     const totals = state.mode === 'analysis' ? previewTotals(endPerf) : state.totals;
     const hist = state.history.slice();
     if(state.mode === 'analysis' && state.active){
-      hist.push({id:state.active.id,category:state.active.category,activity:state.active.name,start:state.activeStart,end:endPerf,duration:endPerf-state.activeStart});
+      hist.push({id:state.active.id,category:state.active.category,activity:state.active.name,start:state.activeStartTs,end:endPerf,duration:endPerf-state.activeStartTs});
     }
 
     const meta = [
       ['Frekvensanalys'],
-      ['Lagledare / observatör',state.header.leader],
+      ['Observatör',state.header.leader],
       ['Flöde / område',state.header.flow],
       ['Datum',state.header.date],
       ['Källa',state.header.source],
@@ -508,21 +601,21 @@
     const details = meta.concat([['Kategori','Aktivitet','Start','Slut','Sekunder']]);
     hist.forEach(h => details.push([
       h.category,h.activity,
-      new Date(base + (h.start-state.sessionStart)).toLocaleString('sv-SE'),
-      new Date(base + (h.end-state.sessionStart)).toLocaleString('sv-SE'),
-      Math.round(h.duration/1000)
+      new Date(base + (h.start-state.sessionStartTs)).toLocaleString('sv-SE'),
+      new Date(base + (h.end-state.sessionStartTs)).toLocaleString('sv-SE'),
+      +(h.duration/1000).toFixed(2)
     ]));
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(details),'Detaljer');
 
     const agg = aggregateCategories(totals);
     const tracked = Object.values(agg).reduce((a,b)=>a+b,0) || 1;
     const catRows = [['Kategori','Sekunder','Minuter','Andel %']];
-    CATEGORIES.forEach(c => catRows.push([c.key,Math.round(agg[c.key]/1000),+(agg[c.key]/60000).toFixed(2),+(agg[c.key]/tracked*100).toFixed(1)]));
+    CATEGORIES.forEach(c => catRows.push([c.key,+(agg[c.key]/1000).toFixed(2),+(agg[c.key]/60000).toFixed(2),+(agg[c.key]/tracked*100).toFixed(1)]));
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(catRows),'Kategorier');
 
     const actRows = [['Kategori','Aktivitet','Sekunder','Minuter','Tillfällen']];
     CATEGORIES.forEach(c => state.activities[c.key].forEach(a => {
-      const id=activityId(c.key,a); actRows.push([c.key,a,Math.round((totals[id]||0)/1000),+((totals[id]||0)/60000).toFixed(2),state.counts[id]||0]);
+      const id=activityId(c.key,a); actRows.push([c.key,a,+((totals[id]||0)/1000).toFixed(2),+((totals[id]||0)/60000).toFixed(2),state.counts[id]||0]);
     }));
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(actRows),'Aktiviteter');
 
@@ -530,28 +623,115 @@
     XLSX.writeFile(wb,`frekvensanalys_${safeFlow}_${state.header.date || todayISO()}.xlsx`);
   }
 
+  function downloadPdfReport(){
+    if(state.mode !== 'summary' || !state.sessionStartTs){ toast('Avsluta analysen innan PDF-rapporten skapas.'); return; }
+    if(!window.jspdf?.jsPDF){ toast('PDF-motorn kunde inte laddas.'); return; }
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+    const pageW=doc.internal.pageSize.getWidth(),pageH=doc.internal.pageSize.getHeight();
+    const navy=[11,16,32],blue=[37,99,235],dark=[15,23,42],muted=[100,116,139],light=[241,245,249],white=[255,255,255];
+    const agg=aggregateByCategory ? aggregateByCategory() : aggregateCategories(state.totals);
+    const trackedMs=Object.values(agg).reduce((a,b)=>a+b,0);
+    const totalMs=Math.max(0,state.sessionEndTs-state.sessionStartTs);
+    const trackedPct=totalMs>0?trackedMs/totalMs*100:0;
+    const rows=[];
+    CATEGORIES.forEach(c=>state.activities[c.key].forEach(a=>{
+      const id=activityId(c.key,a),ms=state.totals[id]||0;
+      if(ms>0) rows.push({category:c.key,name:a,ms,count:state.counts[id]||0});
+    }));
+    rows.sort((a,b)=>b.ms-a.ms);
+  
+    const header=(title,subtitle)=>{
+      doc.setFillColor(...navy);doc.rect(0,0,pageW,30,'F');
+      doc.setFillColor(...blue);doc.roundedRect(12,7,16,16,3,3,'F');
+      doc.setTextColor(...white);doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text('D',20,18.5,{align:'center'});
+      doc.setFontSize(17);doc.text(title,35,13);
+      doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(203,213,225);doc.text(subtitle,35,19);
+      doc.setFontSize(8);doc.text(`${state.header.date||''}  ·  ${state.header.flow||'Ej angivet område'}`,pageW-12,13,{align:'right'});
+      doc.text(`Observatör: ${state.header.leader||'Ej angiven'}`,pageW-12,19,{align:'right'});
+    };
+    const kpi=(x,y,w,label,value,accent=blue)=>{
+      doc.setFillColor(...white);doc.setDrawColor(226,232,240);doc.roundedRect(x,y,w,22,3,3,'FD');
+      doc.setFillColor(...accent);doc.roundedRect(x,y,3,22,1.5,1.5,'F');
+      doc.setTextColor(...muted);doc.setFont('helvetica','bold');doc.setFontSize(7);doc.text(label,x+7,y+7);
+      doc.setTextColor(...dark);doc.setFontSize(13);doc.text(value,x+7,y+16);
+    };
+  
+    header('FREKVENSANALYS','Dometic · Process Observation · Resultatrapport');
+    const gap=4,margin=12,w=(pageW-margin*2-gap*3)/4;
+    kpi(margin,37,w,'TOTAL ANALYS',fmt(totalMs));
+    kpi(margin+w+gap,37,w,'KLASSIFICERAD TID',fmt(trackedMs),[22,163,74]);
+    kpi(margin+(w+gap)*2,37,w,'KLASSIFICERAD ANDEL',`${trackedPct.toFixed(1)} %`,[251,152,70]);
+    kpi(margin+(w+gap)*3,37,w,'AKTIVITETER ANVÄNDA',String(rows.length),[78,172,196]);
+  
+    doc.setTextColor(...dark);doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text('TID PER KATEGORI',12,70);
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...muted);doc.text('Andel av klassificerad tid',12,75);
+    const barX=53,barW=91,valueX=151;
+    CATEGORIES.forEach((c,i)=>{
+      const y=84+i*18,ms=agg[c.key]||0,pct=trackedMs>0?ms/trackedMs*100:0,rgb=hexToRgb(c.color);
+      doc.setFillColor(...rgb);doc.roundedRect(12,y-4,4,4,1,1,'F');
+      doc.setTextColor(...dark);doc.setFont('helvetica','bold');doc.setFontSize(8);doc.text(c.key,19,y-.5);
+      doc.setFillColor(...light);doc.roundedRect(barX,y-5,barW,6,3,3,'F');
+      if(pct>0){doc.setFillColor(...rgb);doc.roundedRect(barX,y-5,Math.max(2,barW*pct/100),6,3,3,'F');}
+      doc.setTextColor(...dark);doc.text(`${pct.toFixed(1)} %`,valueX,y-1,{align:'right'});
+      doc.setTextColor(...muted);doc.setFont('helvetica','normal');doc.setFontSize(7);doc.text(fmt(ms),valueX,y+4,{align:'right'});
+    });
+  
+    const top=rows.slice(0,8).map((r,i)=>[String(i+1),r.name,r.category,fmt(r.ms),`${(r.ms/(trackedMs||1)*100).toFixed(1)} %`,String(r.count)]);
+    doc.setTextColor(...dark);doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text('AKTIVITETER MED MEST TID',166,70);
+    doc.autoTable({startY:76,margin:{left:166,right:12},head:[['#','Aktivitet','Kategori','Tid','Andel','Tillfällen']],body:top,theme:'grid',
+      styles:{font:'helvetica',fontSize:7.2,cellPadding:2.1,textColor:dark,lineColor:[226,232,240],lineWidth:.2},
+      headStyles:{fillColor:navy,textColor:white,fontStyle:'bold'},alternateRowStyles:{fillColor:[248,250,252]},
+      columnStyles:{0:{cellWidth:8,halign:'center'},1:{cellWidth:44},2:{cellWidth:28},3:{cellWidth:25,halign:'right'},4:{cellWidth:16,halign:'right'},5:{cellWidth:16,halign:'right'}}
+    });
+    doc.setDrawColor(226,232,240);doc.line(12,pageH-20,pageW-12,pageH-20);
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(...muted);doc.text(`Källa: ${state.header.source||'Ej angiven'}`,12,pageH-13);doc.text(`Genererad ${new Date().toLocaleString('sv-SE')}`,pageW-12,pageH-13,{align:'right'});
+  
+    doc.addPage('a4','landscape');header('DETALJERAD RESULTATRAPPORT','Aktiviteter, tider och antal byten');
+    doc.setTextColor(...dark);doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text('SAMTLIGA REGISTRERADE AKTIVITETER',12,41);
+    const full=rows.map((r,i)=>[String(i+1),r.category,r.name,fmt(r.ms),`${(r.ms/(trackedMs||1)*100).toFixed(1)} %`,String(r.count)]);
+    doc.autoTable({startY:47,margin:{left:12,right:12,bottom:16},head:[['#','Kategori','Aktivitet','Total tid','Andel','Tillfällen']],body:full,theme:'striped',
+      styles:{font:'helvetica',fontSize:8,cellPadding:2.4,textColor:dark,lineColor:[226,232,240],lineWidth:.15},
+      headStyles:{fillColor:navy,textColor:white,fontStyle:'bold'},alternateRowStyles:{fillColor:[248,250,252]},
+      columnStyles:{0:{cellWidth:10,halign:'center'},1:{cellWidth:38},2:{cellWidth:'auto'},3:{cellWidth:31,halign:'right'},4:{cellWidth:22,halign:'right'},5:{cellWidth:23,halign:'right'}}
+    });
+    const pages=doc.internal.getNumberOfPages();
+    for(let p=1;p<=pages;p++){doc.setPage(p);doc.setFontSize(7);doc.setTextColor(...muted);doc.text(`${p} / ${pages}`,pageW-12,pageH-8,{align:'right'});}
+    doc.save(`frekvensanalys_${safeFilePart(state.header.flow||'analys')}_${state.header.date||todayISO()}.pdf`);
+  }
+
+  function hexToRgb(hex){
+    const h=String(hex).replace('#','');
+    return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];
+  }
+
+  function safeFilePart(s){
+    return String(s||'').replace(/[^a-zA-Z0-9åäöÅÄÖ_-]+/g,'_').replace(/^_+|_+$/g,'')||'analys';
+  }
+
   function resetAll(){
     if(state.mode === 'analysis' && !confirm('En analys pågår. Nollställa allt?')) return;
-    if(state.mode !== 'analysis' && state.sessionStart && !confirm('Nollställa aktuell analys?')) return;
+    if(state.mode !== 'analysis' && state.sessionStartTs && !confirm('Nollställa aktuell analys?')) return;
     cancelAnimationFrame(state.raf);
     clearDraft();
     state.selectedSource = null;
     state.activities = emptyActivityMap();
-    state.totals={};state.counts={};state.active=null;state.history=[];state.sessionStart=0;state.sessionEnd=0;state.mode='setup';
+    state.totals={};state.counts={};state.active=null;state.history=[];state.sessionStartTs=0;state.sessionEndTs=0;state.mode='setup';
     els.sourceSelect.value='';
     els.exportBtnTop.disabled=true;
     els.startBtn.disabled=true;
-    renderCategoryPreview();
+    renderSetupConfiguration();
     setSourceStatus('Välj en källa.','');
     showView('setup');
   }
 
   function newAnalysis(){
     if(!confirm('Starta en ny analys?')) return;
-    cancelAnimationFrame(state.raf);clearDraft();
-    state.totals={};state.counts={};state.active=null;state.history=[];state.sessionStart=0;state.sessionEnd=0;state.mode='setup';
+    cancelAnimationFrame(state.raf);releaseWakeLock();clearDraft();
+    state.totals={};state.counts={};state.active=null;state.history=[];state.sessionStartTs=0;state.sessionEndTs=0;state.mode='setup';
     els.exportBtnTop.disabled=true;
     showView('setup');
+    renderSetupConfiguration();
     els.startBtn.disabled = !state.selectedSource || totalConfiguredActivities()===0;
   }
 
@@ -563,8 +743,23 @@
   }
   function getCategory(key){ return CATEGORIES.find(c=>c.key===key) || CATEGORIES[0]; }
   function safeDomId(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return (h>>>0).toString(36); }
-  function fmt(ms){ const sec=Math.max(0,Math.floor(ms/1000)); const h=String(Math.floor(sec/3600)).padStart(2,'0'); const m=String(Math.floor((sec%3600)/60)).padStart(2,'0'); const s=String(sec%60).padStart(2,'0'); return `${h}:${m}:${s}`; }
-  function fmtShort(ms){ const sec=Math.max(0,Math.round(ms/1000)); if(sec<60) return `${sec}s`; const m=Math.floor(sec/60),s=sec%60; if(m<60) return `${m}:${String(s).padStart(2,'0')}`; return `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}`; }
+  function fmt(ms){
+  const cs=Math.max(0,Math.floor(ms/10));
+  const h=String(Math.floor(cs/360000)).padStart(2,'0');
+  const m=String(Math.floor((cs%360000)/6000)).padStart(2,'0');
+  const s=String(Math.floor((cs%6000)/100)).padStart(2,'0');
+  const c=String(cs%100).padStart(2,'0');
+  return `${h}:${m}:${s}.${c}`;
+}
+  function fmtShort(ms){
+  const cs=Math.max(0,Math.floor(ms/10));
+  const totalSec=Math.floor(cs/100);
+  const c=String(cs%100).padStart(2,'0');
+  if(totalSec<60) return `${totalSec}.${c}s`;
+  const m=Math.floor(totalSec/60),s=totalSec%60;
+  if(m<60) return `${m}:${String(s).padStart(2,'0')}.${c}`;
+  return `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
   function todayISO(){ const d=new Date(); const off=d.getTimezoneOffset(); return new Date(d.getTime()-off*60000).toISOString().slice(0,10); }
   function getCss(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
   function escapeHtml(s){ return String(s ?? '').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch])); }
@@ -581,22 +776,93 @@
   }
 
   function persistDraft(){
-    if(state.mode!=='analysis') return;
-    try{
-      const now=performance.now();
-      const payload={
-        version:2,savedAt:Date.now(),header:state.header,activities:state.activities,selectedCategory:state.selectedCategory,
-        totals:previewTotals(now),counts:state.counts,history:state.history.map(h=>({...h})),
-        active:state.active,elapsedSession:now-state.sessionStart,elapsedActive:state.active?now-state.activeStart:0
-      };
-      localStorage.setItem('fa_draft_v2',JSON.stringify(payload));
-    }catch(e){ console.warn('Kunde inte autospara',e); }
-  }
-  function clearDraft(){ localStorage.removeItem('fa_draft_v2'); }
+  if(state.mode!=='analysis') return;
+  try{
+    const payload={
+      version:3,
+      savedAt:Date.now(),
+      header:state.header,
+      activities:state.activities,
+      selectedCategory:state.selectedCategory,
+      totals:state.totals,
+      counts:state.counts,
+      history:state.history,
+      active:state.active,
+      activeStartTs:state.activeStartTs,
+      sessionStartTs:state.sessionStartTs
+    };
+    localStorage.setItem(DRAFT_KEY,JSON.stringify(payload));
+  }catch(e){ console.warn('Kunde inte autospara',e); }
+}
+
+async function requestWakeLock(){
+  if(state.mode !== 'analysis' || document.visibilityState !== 'visible' || !('wakeLock' in navigator)) return;
+  try{
+    if(state.wakeLock && !state.wakeLock.released) return;
+    state.wakeLock = await navigator.wakeLock.request('screen');
+    state.wakeLock.addEventListener?.('release',() => { state.wakeLock = null; });
+  }catch(err){ console.debug('Wake Lock ej tillgängligt',err); }
+}
+
+async function releaseWakeLock(){
+  try{ await state.wakeLock?.release?.(); }catch(_e){}
+  state.wakeLock = null;
+}
+
+function persistDraft(){
+  if(state.mode!=='analysis') return;
+  try{
+    const payload={
+      version:3,
+      savedAt:Date.now(),
+      header:state.header,
+      activities:state.activities,
+      selectedCategory:state.selectedCategory,
+      totals:state.totals,
+      counts:state.counts,
+      history:state.history,
+      active:state.active,
+      activeStartTs:state.activeStartTs,
+      sessionStartTs:state.sessionStartTs
+    };
+    localStorage.setItem(DRAFT_KEY,JSON.stringify(payload));
+  }catch(e){ console.warn('Kunde inte autospara',e); }
+}
+
+function clearDraft(){
+  localStorage.removeItem(DRAFT_KEY);
+}
+
+function tryRestoreDraft(){
+  let payload;
+  try{ payload=JSON.parse(localStorage.getItem(DRAFT_KEY)||'null'); }catch(_e){ clearDraft(); return false; }
+  if(!payload || payload.version!==3 || !payload.sessionStartTs || !payload.activities) return false;
+  if(!confirm('Det finns en pågående frekvensanalys sparad. Återuppta den?')){ clearDraft(); return false; }
+  state.header=payload.header||state.header;
+  state.activities=emptyActivityMap();
+  CATEGORIES.forEach(c => state.activities[c.key]=Array.isArray(payload.activities[c.key])?payload.activities[c.key].map(cleanActivity).filter(Boolean):[]);
+  state.selectedCategory=CATEGORIES.some(c=>c.key===payload.selectedCategory)?payload.selectedCategory:firstNonEmptyCategory();
+  state.totals=payload.totals||{};
+  state.counts=payload.counts||{};
+  state.history=Array.isArray(payload.history)?payload.history:[];
+  state.active=payload.active||null;
+  state.activeStartTs=Number(payload.activeStartTs)||0;
+  state.sessionStartTs=Number(payload.sessionStartTs)||Date.now();
+  state.sessionEndTs=0;
+  state.selectedSource=state.header.source?{name:state.header.source}:null;
+  state.mode='analysis';
+  els.exportBtnTop.disabled=false;
+  showView('analysis');
+  renderAnalysis();
+  requestWakeLock();
+  tick();
+  toast('Analysen återställd. Tiden fortsätter räknas efter skärmlås.');
+  return true;
+}
 
   function wire(){
     els.dateInput.value = todayISO();
-    renderCategoryPreview();
+    renderSetupConfiguration();
     CATEGORIES.forEach(c => els.addCategorySelect.insertAdjacentHTML('beforeend',`<option value="${escapeAttr(c.key)}">${escapeHtml(c.key)}</option>`));
     els.sourceSelect.addEventListener('change',loadSelectedSource);
     els.refreshSourcesBtn.addEventListener('click',loadSources);
@@ -609,9 +875,16 @@
     els.finishBtn.addEventListener('click',finishSession);
     els.exportBtnTop.addEventListener('click',downloadExcel);
     els.summaryExportBtn.addEventListener('click',downloadExcel);
+    els.summaryPdfBtn.addEventListener('click',downloadPdfReport);
     els.newAnalysisBtn.addEventListener('click',newAnalysis);
     els.resetBtnTop.addEventListener('click',resetAll);
     els.themeBtn.addEventListener('click',()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'));
+    document.addEventListener('visibilitychange',()=>{
+      if(state.mode!=='analysis') return;
+      if(document.visibilityState==='hidden'){persistDraft();}
+      else{renderActivityPanel();renderLiveBars();requestWakeLock();}
+    });
+    window.addEventListener('pagehide',()=>{if(state.mode==='analysis')persistDraft();});
     window.addEventListener('beforeunload',e=>{
       if(state.mode==='analysis'){
         persistDraft();
@@ -619,10 +892,16 @@
         e.returnValue='';
       }
     });
-    setInterval(()=>{if(state.mode==='analysis')persistDraft();},15000);
+    setInterval(()=>{if(state.mode==='analysis')persistDraft();},10000);
   }
 
   wire();
   setTheme(localStorage.getItem('fa_theme') || 'dark');
-  loadSources();
+  const restored=tryRestoreDraft();
+  loadSources().then(()=>{
+    if(restored && state.header.source){
+      const idx=state.sources.findIndex(s=>s.name===state.header.source);
+      if(idx>=0){state.selectedSource=state.sources[idx];els.sourceSelect.value=String(idx);}
+    }
+  });
 })();

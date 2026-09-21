@@ -45,7 +45,7 @@
               </div>
             </label>
             <label class="field">
-              <span>LAGLEDARE / OBSERVATÖR</span>
+              <span>OBSERVATÖR</span>
               <input id="leaderInput" type="text" autocomplete="name" placeholder="Namn">
             </label>
             <label class="field">
@@ -76,12 +76,20 @@
             <span class="pill">5 kategorier</span>
           </div>
           <div id="categoryPreview" class="category-preview"></div>
-          <details class="format-help">
-            <summary>Excel-format</summary>
-            <p>En kolumn per kategori. Rubrikerna ska vara <b>Processarbete</b>, <b>Materialförsörjning</b>, <b>Problem</b>, <b>Administration</b> och <b>Övrigt</b>. Lägg aktiviteterna under respektive rubrik.</p>
-          </details>
+          <div class="locked-note">Kategorierna är låsta. Du kan redigera, ta bort och lägga till aktiviteter under dem.</div>
         </article>
       </div>
+    <article class="card setup-activity-card">
+      <div class="card-head setup-editor-head">
+        <div>
+          <div class="eyebrow">AKTIVITETSLISTA</div>
+          <h2>Granska och redigera innan start</h2>
+        </div>
+        <span class="pill">Ändringar gäller denna analys</span>
+      </div>
+      <div id="setupCategoryTabs" class="category-tabs setup-tabs" role="tablist"></div>
+      <div id="setupActivityEditor" class="setup-activity-editor"></div>
+    </article>
     </section>
 
     <section id="analysisView" hidden>
@@ -107,11 +115,11 @@
               </div>
               <div class="kpi timer-kpi">
                 <span>AKTIVITETSTID</span>
-                <strong id="activeTimer">00:00:00</strong>
+                <strong id="activeTimer">00:00:00.00</strong>
               </div>
               <div class="kpi timer-kpi">
                 <span>TOTAL ANALYS</span>
-                <strong id="sessionTimer">00:00:00</strong>
+                <strong id="sessionTimer">00:00:00.00</strong>
               </div>
             </div>
           </div>
@@ -144,14 +152,15 @@
           <div id="summaryMeta" class="muted compact"></div>
         </div>
         <div class="toolbar-actions">
+          <button id="summaryPdfBtn" class="btn secondary report-btn" type="button">PDF-rapport</button>
           <button id="summaryExportBtn" class="btn secondary" type="button">Exportera Excel</button>
           <button id="newAnalysisBtn" class="btn primary" type="button">Ny analys</button>
         </div>
       </div>
 
       <div class="summary-kpis">
-        <div class="card kpi summary-kpi"><span>TOTAL ANALYS</span><strong id="sumTotal">00:00:00</strong></div>
-        <div class="card kpi summary-kpi"><span>KLASSIFICERAD TID</span><strong id="sumTracked">00:00:00</strong></div>
+        <div class="card kpi summary-kpi"><span>TOTAL ANALYS</span><strong id="sumTotal">00:00:00.00</strong></div>
+        <div class="card kpi summary-kpi"><span>KLASSIFICERAD TID</span><strong id="sumTracked">00:00:00.00</strong></div>
         <div class="card kpi summary-kpi"><span>AKTIVITETSBYTEN</span><strong id="sumSwitches">0</strong></div>
         <div class="card kpi summary-kpi"><span>AKTIVITETER ANVÄNDA</span><strong id="sumUsed">0</strong></div>
       </div>
