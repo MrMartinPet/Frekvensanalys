@@ -69,3 +69,86 @@ h1,h2,h3{margin:0;color:var(--ink)}h1{font-size:24px;margin-top:4px}h2{font-size
   .quick-save-btn{grid-column:span 2}
   .live-actions{grid-template-columns:1fr}
 }
+
+/* v5: sticky 5-category selector + compact mobile menubar */
+.mobile-label{display:none}
+.live-card{position:relative!important;top:auto!important}
+.analysis-main>.category-tabs{
+  position:sticky;
+  top:var(--analysis-sticky-top,62px);
+  z-index:27;
+  display:grid!important;
+  grid-template-columns:repeat(6,minmax(0,1fr))!important;
+  gap:6px;
+  overflow:visible!important;
+  margin:0 0 8px;
+  padding:6px 0 8px;
+  background:var(--bg);
+  scrollbar-width:auto!important;
+}
+.analysis-main>.category-tabs .category-tab{
+  grid-column:span 2;
+  min-width:0!important;
+  width:100%;
+  min-height:52px;
+  font-size:12px;
+  white-space:normal;
+  line-height:1.15;
+}
+.analysis-main>.category-tabs .category-tab:nth-child(4),
+.analysis-main>.category-tabs .category-tab:nth-child(5){grid-column:span 3}
+.analysis-main>.category-tabs::before{
+  content:"";
+  position:absolute;
+  inset:0 -6px;
+  background:var(--bg);
+  border-bottom:1px solid var(--line);
+  z-index:-1;
+  box-shadow:0 5px 10px color-mix(in srgb,#000 8%,transparent);
+}
+@media(max-width:760px){
+  .menubar{
+    display:grid!important;
+    grid-template-columns:minmax(105px,1fr) auto;
+    align-items:start!important;
+    gap:8px;
+  }
+  .brand{align-self:start;min-width:0}
+  .brand-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .menu-actions{
+    width:auto!important;
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(42px,max-content))!important;
+    gap:4px!important;
+    align-items:start;
+    justify-content:end!important;
+  }
+  .menu-actions .btn{
+    min-width:42px!important;
+    min-height:32px!important;
+    padding:4px 6px!important;
+    font-size:10px!important;
+  }
+  .desktop-label{display:none}
+  .mobile-label{display:inline}
+  .quick-save-btn{grid-column:auto!important}
+  .analysis-main>.category-tabs{
+    gap:5px;
+    padding-top:5px;
+    padding-bottom:7px;
+  }
+  .analysis-main>.category-tabs .category-tab{
+    min-height:50px;
+    padding:7px 5px 7px 9px;
+    font-size:10.5px;
+  }
+  .analysis-main>.category-tabs .tab-count{font-size:9px}
+  .live-top{gap:8px}
+}
+@media(max-width:430px){
+  .menubar{grid-template-columns:minmax(95px,1fr) auto}
+  .brand-title{font-size:13px}
+  .brand-mark{width:29px;height:29px}
+  .menu-actions{grid-template-columns:repeat(3,42px)!important}
+  .analysis-main>.category-tabs .category-tab{font-size:10px}
+}

@@ -342,6 +342,8 @@
     state.mode = 'analysis';
     state.correctionMode = false;
     showView('analysis');
+    els.finishBtn.classList.remove('hidden');
+    updateStickyOffset();
     els.exportBtnTop.disabled = false;
     els.quickSaveBtnTop.disabled = false;
     els.pdfBtnTop.disabled = false;
@@ -585,6 +587,7 @@
     cancelAnimationFrame(state.raf);
     releaseWakeLock();
     clearDraft();
+    els.finishBtn.classList.add('hidden');
     showView('summary');
     renderSummary();
   }
@@ -787,6 +790,7 @@
     els.startBtn.disabled=true;
     renderSetupConfiguration();
     setSourceStatus('Välj en källa.','');
+    els.finishBtn.classList.add('hidden');
     showView('setup');
   }
 
@@ -797,6 +801,7 @@
     els.exportBtnTop.disabled=true;
     els.quickSaveBtnTop.disabled=true;
     els.pdfBtnTop.disabled=true;
+    els.finishBtn.classList.add('hidden');
     showView('setup');
     renderSetupConfiguration();
     els.startBtn.disabled = !state.selectedSource || totalConfiguredActivities()===0;
@@ -902,6 +907,8 @@ function tryRestoreDraft(){
   els.quickSaveBtnTop.disabled=false;
   els.pdfBtnTop.disabled=false;
   state.correctionMode=false;
+  els.finishBtn.classList.remove('hidden');
+  updateStickyOffset();
   showView('analysis');
   renderAnalysis();
   requestWakeLock();
@@ -909,6 +916,12 @@ function tryRestoreDraft(){
   toast('Analysen återställd. Tiden fortsätter räknas efter skärmlås.');
   return true;
 }
+
+  function updateStickyOffset(){
+    const menu=document.querySelector('.menubar');
+    const h=menu ? Math.ceil(menu.getBoundingClientRect().height) : 48;
+    document.documentElement.style.setProperty('--analysis-sticky-top',`${h + 10}px`);
+  }
 
   function wire(){
     els.dateInput.value = todayISO();
@@ -931,6 +944,10 @@ function tryRestoreDraft(){
     els.newAnalysisBtn.addEventListener('click',newAnalysis);
     els.resetBtnTop.addEventListener('click',resetAll);
     els.themeBtn.addEventListener('click',()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'));
+    updateStickyOffset();
+    const menu=document.querySelector('.menubar');
+    if(menu && 'ResizeObserver' in window){ new ResizeObserver(updateStickyOffset).observe(menu); }
+    window.addEventListener('resize',updateStickyOffset);
     document.addEventListener('visibilitychange',()=>{
       if(state.mode!=='analysis') return;
       if(document.visibilityState==='hidden'){ if(state.correctionMode){state.correctionMode=false;updateCorrectionButton();} persistDraft();}

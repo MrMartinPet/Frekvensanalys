@@ -23,10 +23,11 @@
     </div>
     <div class="menu-actions">
       <button id="themeBtn" class="btn small secondary" type="button" title="Växla tema">☀︎</button>
-      <button id="quickSaveBtnTop" class="btn small secondary quick-save-btn" type="button" disabled title="Spara en Excel-kopia direkt">💾 Snabbspara</button>
+      <button id="quickSaveBtnTop" class="btn small secondary quick-save-btn" type="button" disabled title="Spara en Excel-kopia direkt">💾<span class="desktop-label"> Snabbspara</span></button>
       <button id="exportBtnTop" class="btn small secondary" type="button" disabled>Excel</button>
       <button id="pdfBtnTop" class="btn small secondary report-btn" type="button" disabled>PDF</button>
-      <button id="resetBtnTop" class="btn small danger" type="button">Nollställ</button>
+      <button id="finishBtn" class="btn small danger hidden" type="button" title="Avsluta analys"><span class="desktop-label">Avsluta</span><span class="mobile-label">Slut</span></button>
+      <button id="resetBtnTop" class="btn small danger" type="button"><span class="desktop-label">Nollställ</span><span class="mobile-label">Noll</span></button>
     </div>
   </header>
 
@@ -94,7 +95,6 @@
               <div class="live-actions">
                 <button id="changeActivityBtn" class="btn secondary change-activity-btn" type="button" aria-pressed="false" disabled>Ändra aktivitet</button>
                 <button id="addActivitiesBtn" class="btn secondary" type="button">+ Lägg till aktiviteter</button>
-                <button id="finishBtn" class="btn danger" type="button">Avsluta</button>
               </div>
             </div>
 
